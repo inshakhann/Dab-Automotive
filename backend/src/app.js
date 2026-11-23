@@ -1,6 +1,7 @@
 const express = require("express");
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./modules/auth/auth.routes");
+const userRoutes = require("./modules/users/users.routes");
 const app = express();
 
 // Allows the backend to read JSON request bodies.
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 // Database connection check.
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 // Handle URLs that do not exist.
 app.use((req, res) => {
   res.status(404).json({

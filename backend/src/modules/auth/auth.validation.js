@@ -51,4 +51,32 @@ const registerValidation = [
     ),
 ];
 
-module.exports = { registerValidation };
+const loginValidation = [
+  body("email")
+    .isString()
+    .withMessage("Email is required.")
+    .bail()
+    .trim()
+    .isLength({ max: 255 })
+    .withMessage("Email is too long.")
+    .bail()
+    .isEmail()
+    .withMessage("Enter a valid email address.")
+    .bail()
+    .customSanitizer((value) => value.toLowerCase()),
+
+  body("password")
+    .isString()
+    .withMessage("Password is required.")
+    .bail()
+    .notEmpty()
+    .withMessage("Password is required.")
+    .bail()
+    .custom((value) => Buffer.byteLength(value, "utf8") <= 72)
+    .withMessage("Password must not exceed 72 bytes."),
+];
+
+module.exports = {
+  registerValidation,
+  loginValidation,
+};

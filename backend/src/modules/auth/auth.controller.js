@@ -33,4 +33,35 @@ async function register(req, res, next) {
   }
 }
 
-module.exports = { register };
+async function login(req, res, next) {
+  try {
+    const data = matchedData(req, {
+      locations: ["body"],
+    });
+
+    const result = await authService.loginUser(data);
+
+    if (result.error) {
+      return res.status(result.error.status).json({
+        success: false,
+        message: result.error.message,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful.",
+      token_type: "Bearer",
+      expires_in: 3600,
+      access_token: result.access_token,
+      user: result.user,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports = {
+  register,
+  login,
+};
