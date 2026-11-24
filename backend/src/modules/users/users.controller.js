@@ -72,7 +72,37 @@ async function reviewStaff(req, res, next) {
   }
 }
 
+async function updateMyProfile(req, res, next) {
+  try {
+    const data = matchedData(req, {
+      locations: ["body"],
+    });
+
+    // Use the identity from authentication, never an ID from the body.
+    const user = await service.updateMyProfile(
+      req.user.id,
+      data
+    );
+
+    if (!user) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is no longer active.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully.",
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   listUsers,
   reviewStaff,
+  updateMyProfile,
 };

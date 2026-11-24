@@ -1,6 +1,10 @@
 const express = require("express");
 
 const {
+  profileValidation,
+} = require("./profile.validation");
+
+const {
   body,
   param,
   query,
@@ -24,6 +28,13 @@ router.get("/me", (req, res) => {
     user: req.user,
   });
 });
+
+router.put(
+  "/me",
+  profileValidation,
+  validate,
+  controller.updateMyProfile
+);
 
 router.get(
   "/",

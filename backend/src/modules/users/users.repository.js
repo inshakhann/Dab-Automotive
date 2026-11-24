@@ -132,6 +132,69 @@ async function recordStaffDecision(
   );
 }
 
+async function updateOwnProfile(userId, changes) {
+  return transaction(async (client) => {
+    const result = await client.query(
+      `UPDATE users AS u
+       SET full_name = COALESCE($1::text, u.full_name),
+           phone = COALESCE($2::text, u.phone),
+           preferred_language = COALESCE(
+             $3::text,
+             u.preferred_language
+           ),
+           updated_at = CURRENT_TIMESTAMP
+       FROM roles AS r
+       WHERE u.id = $4
+         AND u.status = 'active'
+         AND r.id = u.role_id
+       RETURNING
+         u.id,
+         u.full_name,
+         u.email,
+         u.phone,
+         u.status,
+         u.preferred_language,
+         u.updated_at,
+         r.name AS role`,
+      [
+        changes.full_name ?? null,
+        changes.phone ?? null,
+        changes.preferred_language ?? null,
+        userId,
+      ]
+    );
+
+    if (result.rowCount === 0) {
+      return null;
+    }
+
+    const updatedFields = [
+      "full_name",
+      "phone",
+      "preferred_language",
+    ].filter((field) => changes[field] !== undefined);
+
+    await client.query(
+      `INSERT INTO audit_logs (
+         actor_user_id,
+         action,
+         entity_type,
+         entity_id,
+         details
+       )
+       VALUES ($1, 'profile.update', 'user', $1, $2::jsonb)`,
+      [
+        userId,
+        JSON.stringify({
+          updated_fields: updatedFields,
+        }),
+      ]
+    );
+
+    return result.rows[0];
+  });
+}
+
 module.exports = {
   listUsers,
   transaction,
@@ -139,4 +202,5 @@ module.exports = {
   lockStaffRequest,
   updateStaffDecision,
   recordStaffDecision,
+  updateOwnProfile,
 };

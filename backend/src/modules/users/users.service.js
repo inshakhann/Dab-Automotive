@@ -87,4 +87,5 @@ async function reviewStaff(actorId, userId, decision) {
 module.exports = {
   listUsers: repository.listUsers,
   reviewStaff,
+  updateMyProfile: repository.updateOwnProfile,
 };
