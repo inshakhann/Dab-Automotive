@@ -84,8 +84,101 @@ async function reviewStaff(actorId, userId, decision) {
   });
 }
 
+async function changeUserStatus(actorId, userId, status) {
+  if (!["active", "inactive"].includes(status)) {
+    throw publicError(
+      400,
+      "Status must be active or inactive."
+    );
+  }
+
+  if (actorId === userId) {
+    throw publicError(
+      403,
+      "You cannot change your own account status."
+    );
+  }
+
+  return repository.transaction(async (client) => {
+    const actor = await repository.lockStatusActor(
+      client,
+      actorId
+    );
+
+    if (
+      !actor ||
+      actor.status !== "active" ||
+      !actor.can_change_status
+    ) {
+      throw publicError(
+        403,
+        "You cannot change account statuses."
+      );
+    }
+
+    // Reuse the existing function that locks and reads a user.
+    const target = await repository.lockStaffRequest(
+      client,
+      userId
+    );
+
+    if (!target) {
+      throw publicError(404, "User not found.");
+    }
+
+    if (
+      !["active", "inactive"].includes(target.status) ||
+      target.requested_role_id !== null
+    ) {
+      throw publicError(
+        409,
+        "Only approved active or inactive accounts can use this endpoint. Staff requests require the staff-review workflow."
+      );
+    }
+
+    if (target.status === status) {
+      throw publicError(
+        409,
+        "The account already has that status."
+      );
+    }
+
+    if (status === "inactive" && target.role === "owner") {
+      const ownerCount =
+        await repository.countActiveOwners(client);
+
+      if (ownerCount <= 1) {
+        throw publicError(
+          409,
+          "The last active Owner cannot be deactivated."
+        );
+      }
+    }
+
+    const user = await repository.updateUserStatus(
+      client,
+      userId,
+      status
+    );
+
+    await repository.recordUserStatusChange(
+      client,
+      actorId,
+      userId,
+      {
+        previous_status: target.status,
+        new_status: status,
+        role: target.role,
+      }
+    );
+
+    return user;
+  });
+}
+
 module.exports = {
   listUsers: repository.listUsers,
   reviewStaff,
   updateMyProfile: repository.updateOwnProfile,
+  changeUserStatus,
 };

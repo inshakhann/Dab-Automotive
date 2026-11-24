@@ -10,6 +10,10 @@ const {
   query,
 } = require("express-validator");
 
+const {
+  statusValidation,
+} = require("./user-status.validation");
+
 const authenticate = require("../../middleware/authenticate");
 const authorize = require("../../middleware/authorize");
 const validate = require("../../middleware/validate");
@@ -87,6 +91,14 @@ router.put(
 
   validate,
   controller.reviewStaff
+);
+
+router.put(
+  "/:id/status",
+  authorize("users.change_status"),
+  statusValidation,
+  validate,
+  controller.changeUserStatus
 );
 
 module.exports = router;

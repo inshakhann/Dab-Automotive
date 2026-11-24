@@ -195,6 +195,98 @@ async function updateOwnProfile(userId, changes) {
   });
 }
 
+async function lockStatusActor(client, actorId) {
+  // Serialize account-status changes.
+  // Future role-changing operations should use this same lock.
+  await client.query("SELECT pg_advisory_xact_lock(874232)");
+
+  const result = await client.query(
+    `SELECT
+       u.id,
+       u.status,
+       EXISTS (
+         SELECT 1
+         FROM role_permissions rp
+         JOIN permissions p ON p.id = rp.permission_id
+         WHERE rp.role_id = u.role_id
+           AND p.name = 'users.change_status'
+       ) AS can_change_status
+     FROM users u
+     WHERE u.id = $1
+     FOR SHARE OF u`,
+    [actorId]
+  );
+
+  return result.rows[0];
+}
+
+async function countActiveOwners(client) {
+  const result = await client.query(
+    `SELECT COUNT(*)::integer AS count
+     FROM users u
+     JOIN roles r ON r.id = u.role_id
+     WHERE r.name = 'owner'
+       AND u.status = 'active'`
+  );
+
+  return result.rows[0].count;
+}
+
+async function updateUserStatus(client, userId, status) {
+  const result = await client.query(
+    `UPDATE users AS u
+     SET status = $1,
+         token_version = u.token_version + 1,
+         failed_login_attempts = 0,
+         locked_until = NULL,
+         updated_at = CURRENT_TIMESTAMP
+     FROM roles AS r
+     WHERE u.id = $2
+       AND r.id = u.role_id
+     RETURNING
+       u.id,
+       u.full_name,
+       u.email,
+       u.status,
+       r.name AS role`,
+    [status, userId]
+  );
+
+  // Previously issued reset codes must not survive a status change.
+  await client.query(
+    `UPDATE otp_tokens
+     SET used_at = CURRENT_TIMESTAMP
+     WHERE user_id = $1
+       AND used_at IS NULL`,
+    [userId]
+  );
+
+  return result.rows[0];
+}
+
+async function recordUserStatusChange(
+  client,
+  actorId,
+  userId,
+  details
+) {
+  await client.query(
+    `INSERT INTO audit_logs (
+       actor_user_id,
+       action,
+       entity_type,
+       entity_id,
+       details
+     )
+     VALUES ($1, 'user.status.update', 'user', $2, $3::jsonb)`,
+    [
+      actorId,
+      userId,
+      JSON.stringify(details),
+    ]
+  );
+}
+
 module.exports = {
   listUsers,
   transaction,
@@ -203,4 +295,8 @@ module.exports = {
   updateStaffDecision,
   recordStaffDecision,
   updateOwnProfile,
+  lockStatusActor,
+  countActiveOwners,
+  updateUserStatus,
+  recordUserStatusChange,
 };

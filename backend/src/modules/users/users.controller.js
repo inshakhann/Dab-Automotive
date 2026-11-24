@@ -101,8 +101,41 @@ async function updateMyProfile(req, res, next) {
   }
 }
 
+async function changeUserStatus(req, res, next) {
+  try {
+    const data = matchedData(req, {
+      locations: ["params", "body"],
+    });
+
+    const user = await service.changeUserStatus(
+      req.user.id,
+      data.id,
+      data.status
+    );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        user.status === "inactive"
+          ? "Account deactivated successfully."
+          : "Account reactivated successfully. A fresh login is required.",
+      user,
+    });
+  } catch (error) {
+    if ([400, 403, 404, 409].includes(error.statusCode)) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    next(error);
+  }
+}
+
 module.exports = {
   listUsers,
   reviewStaff,
   updateMyProfile,
+  changeUserStatus,
 };
