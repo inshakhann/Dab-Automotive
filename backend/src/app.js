@@ -2,31 +2,40 @@ const express = require("express");
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./modules/auth/auth.routes");
 const userRoutes = require("./modules/users/users.routes");
+const serviceRoutes = require("./routes/service.routes");
+const packageRoutes = require("./routes/package.routes");
+const bayRoutes = require("./routes/bay.routes");
+const bookingRoutes = require("./routes/booking.routes");
+const customerRoutes = require("./routes/customer.routes");
+const vehicleRoutes = require("./routes/vehicle.routes");
+
 const app = express();
 
-// Allows the backend to read JSON request bodies.
 app.use(express.json());
 
-// Basic welcome route.
 app.get("/", (req, res) => {
   res.json({
-    message: "Dab Automotive backend is running",
+    message: "Dab Automotive backend is running"
   });
 });
 
-// Database connection check.
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-// Handle URLs that do not exist.
+app.use("/api/services", serviceRoutes);
+app.use("/api/packages", packageRoutes);
+app.use("/api/bays", bayRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/customers", customerRoutes);
+app.use("/api/vehicles", vehicleRoutes);
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route not found",
+    message: "Route not found"
   });
 });
 
-// Shared error handler.
 app.use((error, req, res, next) => {
   console.error("Request error:", error.message);
 
@@ -34,9 +43,12 @@ app.use((error, req, res, next) => {
 
   res.status(status).json({
     success: false,
-    message:
-      status >= 500 ? "Internal server error" : "Invalid request",
+    message: status >= 500 ? "Internal server error" : "Invalid request"
   });
 });
 
 module.exports = app;
+
+
+
+
