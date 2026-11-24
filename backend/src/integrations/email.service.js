@@ -120,6 +120,36 @@ async function sendPasswordResetOtp(email, otp) {
   }
 }
 
+async function sendStaffDecisionEmail(user) {
+  const { transport, from } = await getMailer();
+
+  const approved = user.status === "active";
+
+  const info = await transport.sendMail({
+    from: {
+      name: "Dab Automotive",
+      address: from,
+    },
+    to: user.email,
+    subject: "Your Dab Automotive staff account request",
+    text: approved
+      ? `Your staff account has been approved as ${user.role}. You can now log in with your registered email and password.`
+      : "Your staff account request has been rejected. Contact the workshop administrator for more information.",
+  });
+
+  if (!info.accepted || info.accepted.length === 0) {
+    throw new Error("The email server did not accept the message.");
+  }
+
+  if (mailMode === "test") {
+    console.log(
+      "Open staff decision test email:",
+      nodemailer.getTestMessageUrl(info)
+    );
+  }
+}
+
 module.exports = {
   sendPasswordResetOtp,
+  sendStaffDecisionEmail,
 };
