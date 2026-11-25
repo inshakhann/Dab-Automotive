@@ -9,6 +9,7 @@ const bayRoutes = require("./routes/bay.routes");
 const bookingRoutes = require("./routes/booking.routes");
 const customerRoutes = require("./routes/customer.routes");
 const vehicleRoutes = require("./routes/vehicle.routes");
+const pickupRoutes = require("./routes/pickup.routes");
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use("/api/bays", bayRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/vehicles", vehicleRoutes);
+app.use("/api/pickups", pickupRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
@@ -50,3 +52,4 @@ app.use((error, req, res, next) => {
 });
 
 module.exports = app;
+

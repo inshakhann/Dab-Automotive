@@ -1,0 +1,2 @@
+ALTER TABLE service_bookings
+ADD COLUMN job_card_created BOOLEAN NOT NULL DEFAULT FALSE;
