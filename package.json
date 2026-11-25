@@ -1,0 +1,26 @@
+{
+  "name": "dab-automotive-member4-inventory-ecommerce",
+  "version": "1.0.0",
+  "description": "Dab Automotive - Member 4 (Roman): Inventory & Automotive E-Commerce Subsystem",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "seed": "node src/data/seed.js",
+    "test": "node tests/run-tests.js"
+  },
+  "keywords": [
+    "inventory",
+    "requisitions",
+    "e-commerce",
+    "dab-automotive"
+  ],
+  "author": "Roman Fatima (241878)",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
