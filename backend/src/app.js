@@ -1,6 +1,7 @@
 const express = require("express");
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./modules/auth/auth.routes");
+const passwordResetRoutes = require("./modules/auth/password-reset.routes");
 const userRoutes = require("./modules/users/users.routes");
 const serviceRoutes = require("./routes/service.routes");
 const packageRoutes = require("./routes/package.routes");
@@ -21,6 +22,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/auth", passwordResetRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/packages", packageRoutes);
@@ -48,7 +50,3 @@ app.use((error, req, res, next) => {
 });
 
 module.exports = app;
-
-
-
-
