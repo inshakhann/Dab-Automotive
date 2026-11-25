@@ -139,3 +139,35 @@ module.exports = {
   updateMyProfile,
   changeUserStatus,
 };
+
+async function changeUserRole(req, res, next) {
+  try {
+    const data = matchedData(req, {
+      locations: ["params", "body"],
+    });
+
+    const user = await service.changeUserRole(
+      req.user.id,
+      data.id,
+      data.role
+    );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "User role updated successfully. Previous access tokens are invalid.",
+      user,
+    });
+  } catch (error) {
+    if ([400, 403, 404, 409].includes(error.statusCode)) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    next(error);
+  }
+}
+
+module.exports.changeUserRole = changeUserRole;

@@ -182,3 +182,97 @@ module.exports = {
   updateMyProfile: repository.updateOwnProfile,
   changeUserStatus,
 };
+
+async function changeUserRole(actorId, userId, role) {
+  const allowedRoles = [
+    "customer",
+    "mechanic",
+    "store_manager",
+    "owner",
+    "administrator",
+  ];
+
+  if (!allowedRoles.includes(role)) {
+    throw publicError(400, "Invalid role.");
+  }
+
+  if (actorId === userId) {
+    throw publicError(403, "You cannot change your own role.");
+  }
+
+  return repository.transaction(async (client) => {
+    const actor = await repository.lockRoleActor(client, actorId);
+
+    if (
+      !actor ||
+      actor.status !== "active" ||
+      !actor.can_change_role
+    ) {
+      throw publicError(
+        403,
+        "You do not have permission to perform this action."
+      );
+    }
+
+    const target = await repository.lockStaffRequest(client, userId);
+
+    if (!target) {
+      throw publicError(404, "User not found.");
+    }
+
+    if (
+      !["active", "inactive"].includes(target.status) ||
+      target.requested_role_id !== null
+    ) {
+      throw publicError(
+        409,
+        "Resolve the staff registration before changing this role."
+      );
+    }
+
+    if (target.role === role) {
+      throw publicError(409, "This user already has that role.");
+    }
+
+    if (target.role === "owner" && target.status === "active") {
+      const ownerCount = await repository.countActiveOwners(client);
+
+      if (ownerCount <= 1) {
+        throw publicError(
+          409,
+          "The last active Owner cannot be demoted."
+        );
+      }
+    }
+
+    const newRole = await repository.findAssignableRole(client, role);
+
+    if (!newRole) {
+      throw publicError(
+        409,
+        "This role is missing from the database."
+      );
+    }
+
+    const user = await repository.updateUserRole(
+      client,
+      userId,
+      newRole.id
+    );
+
+    await repository.recordUserRoleChange(
+      client,
+      actorId,
+      userId,
+      {
+        previous_role: target.role,
+        new_role: role,
+        status: target.status,
+      }
+    );
+
+    return user;
+  });
+}
+
+module.exports.changeUserRole = changeUserRole;

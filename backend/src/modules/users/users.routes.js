@@ -14,6 +14,7 @@ const {
   statusValidation,
 } = require("./user-status.validation");
 
+const roleValidation = require("./user-role.validation");
 const authenticate = require("../../middleware/authenticate");
 const authorize = require("../../middleware/authorize");
 const validate = require("../../middleware/validate");
@@ -101,4 +102,11 @@ router.put(
   controller.changeUserStatus
 );
 
+router.put(
+  "/:id/role",
+  authorize("users.change_role"),
+  roleValidation,
+  validate,
+  controller.changeUserRole
+);
 module.exports = router;

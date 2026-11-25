@@ -300,3 +300,99 @@ module.exports = {
   updateUserStatus,
   recordUserStatusChange,
 };
+
+async function lockRoleActor(client, actorId) {
+  // Same lock used by account-status changes.
+  await client.query("SELECT pg_advisory_xact_lock(874232)");
+
+  const result = await client.query(
+    `
+      SELECT
+        u.id,
+        u.status,
+        EXISTS (
+          SELECT 1
+          FROM role_permissions AS rp
+          JOIN permissions AS p ON p.id = rp.permission_id
+          WHERE rp.role_id = u.role_id
+            AND p.name = 'users.change_role'
+        ) AS can_change_role
+      FROM users AS u
+      WHERE u.id = $1
+      FOR SHARE OF u
+    `,
+    [actorId]
+  );
+
+  return result.rows[0];
+}
+
+async function findAssignableRole(client, roleName) {
+  const result = await client.query(
+    "SELECT id, name FROM roles WHERE name = $1",
+    [roleName]
+  );
+
+  return result.rows[0];
+}
+
+async function updateUserRole(client, userId, roleId) {
+  const result = await client.query(
+    `
+      UPDATE users AS u
+      SET
+        role_id = r.id,
+        token_version = u.token_version + 1,
+        updated_at = CURRENT_TIMESTAMP
+      FROM roles AS r
+      WHERE u.id = $2
+        AND r.id = $1
+      RETURNING
+        u.id,
+        u.full_name,
+        u.email,
+        u.status,
+        r.name AS role
+    `,
+    [roleId, userId]
+  );
+
+  // Invalidate outstanding password-reset codes.
+  await client.query(
+    `
+      UPDATE otp_tokens
+      SET used_at = CURRENT_TIMESTAMP
+      WHERE user_id = $1
+        AND used_at IS NULL
+    `,
+    [userId]
+  );
+
+  return result.rows[0];
+}
+
+async function recordUserRoleChange(
+  client,
+  actorId,
+  userId,
+  details
+) {
+  await client.query(
+    `
+      INSERT INTO audit_logs (
+        actor_user_id,
+        action,
+        entity_type,
+        entity_id,
+        details
+      )
+      VALUES ($1, 'user.role.update', 'user', $2, $3::jsonb)
+    `,
+    [actorId, userId, JSON.stringify(details)]
+  );
+}
+
+module.exports.lockRoleActor = lockRoleActor;
+module.exports.findAssignableRole = findAssignableRole;
+module.exports.updateUserRole = updateUserRole;
+module.exports.recordUserRoleChange = recordUserRoleChange;
