@@ -3,6 +3,7 @@ require("dotenv").config();
 
 const app = require("./app");
 const pool = require("./config/db");
+const { startReminderScheduler } = require("./services/reminder.service");
 
 const PORT = Number(process.env.PORT) || 5000;
 
@@ -15,6 +16,7 @@ async function startServer() {
 
     const server = app.listen(PORT, () => {
       console.log(`Backend running at http://localhost:${PORT}`);
+      startReminderScheduler();
     });
 
     server.on("error", (error) => {

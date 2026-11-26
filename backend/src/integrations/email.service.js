@@ -149,7 +149,40 @@ async function sendStaffDecisionEmail(user) {
   }
 }
 
+
+async function sendBookingReminder(reminder) {
+  const { transport, from } = await getMailer();
+  const hours = reminder.reminderType === "24_hours" ? "24 hours" : "2 hours";
+  const start = new Date(reminder.startTime).toLocaleString("en-PK", {
+    timeZone: "Asia/Karachi"
+  });
+
+  const info = await transport.sendMail({
+    from: { name: "Dab Automotive", address: from },
+    to: reminder.email,
+    subject: "Upcoming Dab Automotive booking reminder",
+    text: [
+      "This is a reminder for your upcoming vehicle service booking.",
+      "",
+      `Booking reference: ${reminder.bookingReference}`,
+      `Service package: ${reminder.packageName}`,
+      `Vehicle: ${reminder.make} ${reminder.model}`,
+      `Booking time: ${start}`,
+      `Reminder: ${hours} before your booking`
+    ].join("\n")
+  });
+
+  if (!info.accepted || info.accepted.length === 0) {
+    throw new Error("The email server did not accept the reminder.");
+  }
+
+  if (mailMode === "test") {
+    console.log("Open booking reminder test email:", nodemailer.getTestMessageUrl(info));
+  }
+}
+
 module.exports = {
   sendPasswordResetOtp,
   sendStaffDecisionEmail,
+  sendBookingReminder,
 };

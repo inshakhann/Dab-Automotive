@@ -1,6 +1,29 @@
 const pool = require("../config/db");
 const crypto = require("crypto");
 
+const syncBookingReminders = async (client, bookingId, startTime) => {
+  const start = new Date(startTime);
+
+  for (const reminder of [
+    { type: "24_hours", hours: 24 },
+    { type: "2_hours", hours: 2 }
+  ]) {
+    const scheduledAt = new Date(start.getTime() - reminder.hours * 60 * 60 * 1000);
+
+    await client.query(
+      `INSERT INTO reminders (booking_id, reminder_type, scheduled_at, status)
+       VALUES ($1, $2, $3, CASE WHEN $3 > CURRENT_TIMESTAMP THEN 'pending' ELSE 'cancelled' END)
+       ON CONFLICT (booking_id, reminder_type)
+       DO UPDATE SET
+         scheduled_at = EXCLUDED.scheduled_at,
+         status = CASE WHEN EXCLUDED.scheduled_at > CURRENT_TIMESTAMP THEN 'pending' ELSE 'cancelled' END,
+         sent_at = NULL`,
+      [bookingId, reminder.type, scheduledAt]
+    );
+  }
+};
+
+
 const getAllBookings = async (customerId) => {
   const result = await pool.query(`
     SELECT b.*, p.name AS package_name,
@@ -100,6 +123,7 @@ const createBooking = async (customerId, vehicleId, packageId, startTime) => {
        bay.rows[0].bay_id, start, end]
     );
 
+    await syncBookingReminders(client, result.rows[0].booking_id, start);
     await client.query("COMMIT");
     return result.rows[0];
   } catch (error) {
@@ -186,6 +210,7 @@ const updateBooking = async (bookingId, customerId, startTime) => {
       [start, end, bay.rows[0].bay_id, bookingId]
     );
 
+    await syncBookingReminders(client, bookingId, start);
     await client.query("COMMIT");
     return result.rows[0];
   } catch (error) {
@@ -228,6 +253,11 @@ const cancelBooking = async (bookingId, customerId) => {
        SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
        WHERE booking_id = $1
        RETURNING *`,
+      [bookingId]
+    );
+
+    await client.query(
+      "UPDATE reminders SET status = 'cancelled' WHERE booking_id = $1 AND status = 'pending'",
       [bookingId]
     );
 
