@@ -32,15 +32,9 @@ const roleValidation = [
     .isString()
     .withMessage("Role must be text.")
     .bail()
-    .isIn([
-      "customer",
-      "mechanic",
-      "store_manager",
-      "owner",
-      "administrator",
-    ])
+    .isIn(["customer", "mechanic", "store_manager", "owner", "administrator"])
     .withMessage(
-      "Role must be customer, mechanic, store_manager, owner, or administrator."
+      "Role must be customer, mechanic, store_manager, owner, or administrator.",
     ),
 ];
 

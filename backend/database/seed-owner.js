@@ -12,9 +12,7 @@ async function seedOwner() {
 
   try {
     const name = process.env.BOOTSTRAP_OWNER_NAME?.trim();
-    const email = process.env.BOOTSTRAP_OWNER_EMAIL
-      ?.trim()
-      .toLowerCase();
+    const email = process.env.BOOTSTRAP_OWNER_EMAIL?.trim().toLowerCase();
     const phone = process.env.BOOTSTRAP_OWNER_PHONE?.trim();
     const password = process.env.BOOTSTRAP_OWNER_PASSWORD;
 
@@ -32,7 +30,7 @@ async function seedOwner() {
       Buffer.byteLength(password, "utf8") > 72
     ) {
       throw new Error(
-        "Check BOOTSTRAP_OWNER values in .env. Password must be at least 12 characters and at most 72 bytes."
+        "Check BOOTSTRAP_OWNER values in .env. Password must be at least 12 characters and at most 72 bytes.",
       );
     }
 
@@ -49,7 +47,7 @@ async function seedOwner() {
        FROM users u
        JOIN roles r ON r.id = u.role_id
        WHERE r.name IN ('owner', 'administrator')
-       LIMIT 1`
+       LIMIT 1`,
     );
 
     if (existingAdmin.rowCount > 0) {
@@ -60,17 +58,17 @@ async function seedOwner() {
 
     const existingEmail = await client.query(
       "SELECT id FROM users WHERE LOWER(email) = $1",
-      [email]
+      [email],
     );
 
     if (existingEmail.rowCount > 0) {
       throw new Error(
-        "That email already belongs to an account. Use a different Owner email. Existing accounts will not be promoted."
+        "That email already belongs to an account. Use a different Owner email. Existing accounts will not be promoted.",
       );
     }
 
     const role = await client.query(
-      "SELECT id FROM roles WHERE name = 'owner'"
+      "SELECT id FROM roles WHERE name = 'owner'",
     );
 
     if (role.rowCount !== 1) {
@@ -88,7 +86,7 @@ async function seedOwner() {
        )
        VALUES ($1, $2, $3, $4, $5, 'active')
        RETURNING id, full_name, email, status`,
-      [name, email, phone, passwordHash, role.rows[0].id]
+      [name, email, phone, passwordHash, role.rows[0].id],
     );
 
     const owner = result.rows[0];
@@ -98,10 +96,7 @@ async function seedOwner() {
          actor_user_id, action, entity_type, entity_id, details
        )
        VALUES ($1, 'owner.bootstrap', 'user', $1, $2::jsonb)`,
-      [
-        owner.id,
-        JSON.stringify({ source: "local setup script" }),
-      ]
+      [owner.id, JSON.stringify({ source: "local setup script" })],
     );
 
     await client.query("COMMIT");

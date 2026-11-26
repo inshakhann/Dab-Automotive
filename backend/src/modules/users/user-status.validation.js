@@ -1,7 +1,4 @@
-const {
-  body,
-  param,
-} = require("express-validator");
+const { body, param } = require("express-validator");
 
 function checkStatusFields(req, res, next) {
   const data = req.body;

@@ -2,9 +2,7 @@ const { matchedData } = require("express-validator");
 
 const service = require("./users.service");
 
-const {
-  sendStaffDecisionEmail,
-} = require("../../integrations/email.service");
+const { sendStaffDecisionEmail } = require("../../integrations/email.service");
 
 async function listUsers(req, res, next) {
   try {
@@ -31,11 +29,7 @@ async function reviewStaff(req, res, next) {
       locations: ["params", "body"],
     });
 
-    const user = await service.reviewStaff(
-      req.user.id,
-      data.id,
-      data.decision
-    );
+    const user = await service.reviewStaff(req.user.id, data.id, data.decision);
 
     let notificationSent = false;
 
@@ -44,10 +38,7 @@ async function reviewStaff(req, res, next) {
       await sendStaffDecisionEmail(user);
       notificationSent = true;
     } catch (error) {
-      console.error(
-        "Staff decision email failed:",
-        error.code || error.name
-      );
+      console.error("Staff decision email failed:", error.code || error.name);
     }
 
     return res.status(200).json({
@@ -79,10 +70,7 @@ async function updateMyProfile(req, res, next) {
     });
 
     // Use the identity from authentication, never an ID from the body.
-    const user = await service.updateMyProfile(
-      req.user.id,
-      data
-    );
+    const user = await service.updateMyProfile(req.user.id, data);
 
     if (!user) {
       return res.status(403).json({
@@ -110,7 +98,7 @@ async function changeUserStatus(req, res, next) {
     const user = await service.changeUserStatus(
       req.user.id,
       data.id,
-      data.status
+      data.status,
     );
 
     return res.status(200).json({
@@ -146,11 +134,7 @@ async function changeUserRole(req, res, next) {
       locations: ["params", "body"],
     });
 
-    const user = await service.changeUserRole(
-      req.user.id,
-      data.id,
-      data.role
-    );
+    const user = await service.changeUserRole(req.user.id, data.id, data.role);
 
     return res.status(200).json({
       success: true,

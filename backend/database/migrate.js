@@ -34,13 +34,11 @@ async function runMigrations() {
 
       try {
         // Prevent two migration runners from applying a file together.
-        await client.query(
-          "LOCK TABLE schema_migrations IN EXCLUSIVE MODE"
-        );
+        await client.query("LOCK TABLE schema_migrations IN EXCLUSIVE MODE");
 
         const existing = await client.query(
           "SELECT filename FROM schema_migrations WHERE filename = $1",
-          [filename]
+          [filename],
         );
 
         if (existing.rowCount > 0) {
@@ -51,14 +49,14 @@ async function runMigrations() {
 
         const sql = fs.readFileSync(
           path.join(migrationsFolder, filename),
-          "utf8"
+          "utf8",
         );
 
         await client.query(sql);
 
         await client.query(
           "INSERT INTO schema_migrations (filename) VALUES ($1)",
-          [filename]
+          [filename],
         );
 
         await client.query("COMMIT");

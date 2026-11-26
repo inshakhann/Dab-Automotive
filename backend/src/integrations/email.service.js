@@ -36,13 +36,7 @@ async function buildMailer() {
     };
   }
 
-  const {
-    SMTP_HOST,
-    SMTP_PORT,
-    SMTP_USER,
-    SMTP_PASS,
-    MAIL_FROM,
-  } = process.env;
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM } = process.env;
 
   const port = Number(SMTP_PORT);
 
@@ -113,10 +107,7 @@ async function sendPasswordResetOtp(email, otp) {
   }
 
   if (mailMode === "test") {
-    console.log(
-      "Open this test email:",
-      nodemailer.getTestMessageUrl(info)
-    );
+    console.log("Open this test email:", nodemailer.getTestMessageUrl(info));
   }
 }
 
@@ -144,7 +135,7 @@ async function sendStaffDecisionEmail(user) {
   if (mailMode === "test") {
     console.log(
       "Open staff decision test email:",
-      nodemailer.getTestMessageUrl(info)
+      nodemailer.getTestMessageUrl(info),
     );
   }
 }

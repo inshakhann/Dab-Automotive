@@ -5,9 +5,7 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT current_database() AS database"
-    );
+    const result = await pool.query("SELECT current_database() AS database");
 
     res.status(200).json({
       success: true,

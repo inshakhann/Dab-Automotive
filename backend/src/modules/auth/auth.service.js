@@ -7,8 +7,7 @@ async function registerUser(data) {
 
   const customerRole = await authRepository.findRoleByName("customer");
 
-  const requestedRole =
-    await authRepository.findRoleByName(requestedRoleName);
+  const requestedRole = await authRepository.findRoleByName(requestedRoleName);
 
   if (!customerRole || !requestedRole) {
     throw new Error("Required roles are missing. Run database migrations.");
@@ -64,26 +63,23 @@ async function loginUser(data) {
       if (lockedUntil && lockedUntil > now) {
         return loginFailure(
           429,
-          "Account temporarily locked. Please try again later."
+          "Account temporarily locked. Please try again later.",
         );
       }
 
       // Start a fresh attempt count when an old lock has expired.
       const previousAttempts =
-        lockedUntil && lockedUntil <= now
-          ? 0
-          : user.failed_login_attempts;
+        lockedUntil && lockedUntil <= now ? 0 : user.failed_login_attempts;
 
       const passwordMatches = await bcrypt.compare(
         data.password,
-        user.password_hash
+        user.password_hash,
       );
 
       if (!passwordMatches) {
         const failedAttempts = previousAttempts + 1;
 
-        const shouldLock =
-          failedAttempts >= MAX_FAILED_ATTEMPTS;
+        const shouldLock = failedAttempts >= MAX_FAILED_ATTEMPTS;
 
         const newLockedUntil = shouldLock
           ? new Date(Date.now() + LOCK_DURATION_MS)
@@ -93,13 +89,13 @@ async function loginUser(data) {
           client,
           user.id,
           failedAttempts,
-          newLockedUntil
+          newLockedUntil,
         );
 
         if (shouldLock) {
           return loginFailure(
             429,
-            "Too many incorrect passwords. Account locked for 15 minutes."
+            "Too many incorrect passwords. Account locked for 15 minutes.",
           );
         }
 
@@ -108,29 +104,21 @@ async function loginUser(data) {
 
       // Check account status only after verifying the password.
       if (user.status === "pending") {
-        return loginFailure(
-          403,
-          "Your staff account is waiting for approval."
-        );
+        return loginFailure(403, "Your staff account is waiting for approval.");
       }
 
       if (user.status !== "active") {
         return loginFailure(
           403,
-          "Your account is not active. Contact the administrator."
+          "Your account is not active. Contact the administrator.",
         );
       }
 
       // Successful login clears earlier failed attempts.
-      await authRepository.updateLoginState(
-        client,
-        user.id,
-        0,
-        null
-      );
+      await authRepository.updateLoginState(client, user.id, 0, null);
 
       return { user };
-    }
+    },
   );
 
   if (outcome.error) {

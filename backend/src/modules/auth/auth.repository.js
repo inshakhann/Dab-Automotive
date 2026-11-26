@@ -3,7 +3,7 @@ const pool = require("../../config/db");
 async function findRoleByName(name) {
   const result = await pool.query(
     "SELECT id, name FROM roles WHERE name = $1",
-    [name]
+    [name],
   );
 
   return result.rows[0];
@@ -36,7 +36,7 @@ async function createUser(data) {
       data.role_id,
       data.requested_role_id,
       data.status,
-    ]
+    ],
   );
 
   return result.rows[0];
@@ -54,7 +54,7 @@ async function withLoginUser(email, action) {
        JOIN roles r ON r.id = u.role_id
        WHERE LOWER(u.email) = LOWER($1)
        FOR UPDATE OF u`,
-      [email]
+      [email],
     );
 
     const user = result.rows[0];
@@ -74,19 +74,14 @@ async function withLoginUser(email, action) {
   }
 }
 
-async function updateLoginState(
-  client,
-  userId,
-  failedAttempts,
-  lockedUntil
-) {
+async function updateLoginState(client, userId, failedAttempts, lockedUntil) {
   await client.query(
     `UPDATE users
      SET failed_login_attempts = $1,
          locked_until = $2,
          updated_at = CURRENT_TIMESTAMP
      WHERE id = $3`,
-    [failedAttempts, lockedUntil, userId]
+    [failedAttempts, lockedUntil, userId],
   );
 }
 
@@ -104,7 +99,7 @@ async function findUserById(id) {
      FROM users u
      JOIN roles r ON r.id = u.role_id
      WHERE u.id = $1`,
-    [id]
+    [id],
   );
 
   return result.rows[0];

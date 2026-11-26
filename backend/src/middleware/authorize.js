@@ -18,14 +18,13 @@ function authorize(permission) {
          WHERE u.id = $1
            AND u.status = 'active'
            AND p.name = $2`,
-        [req.user.id, permission]
+        [req.user.id, permission],
       );
 
       if (result.rowCount === 0) {
         return res.status(403).json({
           success: false,
-          message:
-            "You do not have permission to perform this action.",
+          message: "You do not have permission to perform this action.",
         });
       }
 

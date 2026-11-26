@@ -46,9 +46,7 @@ const registerValidation = [
     .withMessage("Role must be text.")
     .bail()
     .isIn(["customer", "mechanic", "store_manager"])
-    .withMessage(
-      "You can register as customer, mechanic, or store_manager."
-    ),
+    .withMessage("You can register as customer, mechanic, or store_manager."),
 ];
 
 const loginValidation = [

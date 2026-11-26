@@ -19,10 +19,7 @@ async function register(req, res, next) {
   } catch (error) {
     // PostgreSQL's unique-email constraint prevents duplicates,
     // including simultaneous registration attempts.
-    if (
-      error.code === "23505" &&
-      error.constraint === "users_email_unique"
-    ) {
+    if (error.code === "23505" && error.constraint === "users_email_unique") {
       return res.status(409).json({
         success: false,
         message: "An account with this email already exists.",

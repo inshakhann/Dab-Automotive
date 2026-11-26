@@ -8,16 +8,9 @@ function publicError(statusCode, message) {
 
 async function reviewStaff(actorId, userId, decision) {
   return repository.transaction(async (client) => {
-    const reviewer = await repository.lockReviewer(
-      client,
-      actorId
-    );
+    const reviewer = await repository.lockReviewer(client, actorId);
 
-    if (
-      !reviewer ||
-      reviewer.status !== "active" ||
-      !reviewer.can_review
-    ) {
+    if (!reviewer || reviewer.status !== "active" || !reviewer.can_review) {
       throw publicError(403, "You cannot review staff accounts.");
     }
 
@@ -25,10 +18,7 @@ async function reviewStaff(actorId, userId, decision) {
       throw publicError(409, "You cannot review your own account.");
     }
 
-    const staff = await repository.lockStaffRequest(
-      client,
-      userId
-    );
+    const staff = await repository.lockStaffRequest(client, userId);
 
     if (!staff) {
       throw publicError(404, "User not found.");
@@ -41,19 +31,15 @@ async function reviewStaff(actorId, userId, decision) {
     ) {
       throw publicError(
         409,
-        "This account does not have a pending staff request."
+        "This account does not have a pending staff request.",
       );
     }
 
     const approved = decision === "approve";
 
-    const newRoleId = approved
-      ? staff.requested_role_id
-      : staff.role_id;
+    const newRoleId = approved ? staff.requested_role_id : staff.role_id;
 
-    const newRole = approved
-      ? staff.requested_role
-      : staff.role;
+    const newRole = approved ? staff.requested_role : staff.role;
 
     const newStatus = approved ? "active" : "rejected";
 
@@ -61,21 +47,15 @@ async function reviewStaff(actorId, userId, decision) {
       client,
       userId,
       newRoleId,
-      newStatus
+      newStatus,
     );
 
-    await repository.recordStaffDecision(
-      client,
-      actorId,
-      userId,
-      decision,
-      {
-        previous_status: staff.status,
-        requested_role: staff.requested_role,
-        new_status: newStatus,
-        new_role: newRole,
-      }
-    );
+    await repository.recordStaffDecision(client, actorId, userId, decision, {
+      previous_status: staff.status,
+      requested_role: staff.requested_role,
+      new_status: newStatus,
+      new_role: newRole,
+    });
 
     return {
       ...user,
@@ -86,41 +66,22 @@ async function reviewStaff(actorId, userId, decision) {
 
 async function changeUserStatus(actorId, userId, status) {
   if (!["active", "inactive"].includes(status)) {
-    throw publicError(
-      400,
-      "Status must be active or inactive."
-    );
+    throw publicError(400, "Status must be active or inactive.");
   }
 
   if (actorId === userId) {
-    throw publicError(
-      403,
-      "You cannot change your own account status."
-    );
+    throw publicError(403, "You cannot change your own account status.");
   }
 
   return repository.transaction(async (client) => {
-    const actor = await repository.lockStatusActor(
-      client,
-      actorId
-    );
+    const actor = await repository.lockStatusActor(client, actorId);
 
-    if (
-      !actor ||
-      actor.status !== "active" ||
-      !actor.can_change_status
-    ) {
-      throw publicError(
-        403,
-        "You cannot change account statuses."
-      );
+    if (!actor || actor.status !== "active" || !actor.can_change_status) {
+      throw publicError(403, "You cannot change account statuses.");
     }
 
     // Reuse the existing function that locks and reads a user.
-    const target = await repository.lockStaffRequest(
-      client,
-      userId
-    );
+    const target = await repository.lockStaffRequest(client, userId);
 
     if (!target) {
       throw publicError(404, "User not found.");
@@ -132,45 +93,29 @@ async function changeUserStatus(actorId, userId, status) {
     ) {
       throw publicError(
         409,
-        "Only approved active or inactive accounts can use this endpoint. Staff requests require the staff-review workflow."
+        "Only approved active or inactive accounts can use this endpoint. Staff requests require the staff-review workflow.",
       );
     }
 
     if (target.status === status) {
-      throw publicError(
-        409,
-        "The account already has that status."
-      );
+      throw publicError(409, "The account already has that status.");
     }
 
     if (status === "inactive" && target.role === "owner") {
-      const ownerCount =
-        await repository.countActiveOwners(client);
+      const ownerCount = await repository.countActiveOwners(client);
 
       if (ownerCount <= 1) {
-        throw publicError(
-          409,
-          "The last active Owner cannot be deactivated."
-        );
+        throw publicError(409, "The last active Owner cannot be deactivated.");
       }
     }
 
-    const user = await repository.updateUserStatus(
-      client,
-      userId,
-      status
-    );
+    const user = await repository.updateUserStatus(client, userId, status);
 
-    await repository.recordUserStatusChange(
-      client,
-      actorId,
-      userId,
-      {
-        previous_status: target.status,
-        new_status: status,
-        role: target.role,
-      }
-    );
+    await repository.recordUserStatusChange(client, actorId, userId, {
+      previous_status: target.status,
+      new_status: status,
+      role: target.role,
+    });
 
     return user;
   });
@@ -203,14 +148,10 @@ async function changeUserRole(actorId, userId, role) {
   return repository.transaction(async (client) => {
     const actor = await repository.lockRoleActor(client, actorId);
 
-    if (
-      !actor ||
-      actor.status !== "active" ||
-      !actor.can_change_role
-    ) {
+    if (!actor || actor.status !== "active" || !actor.can_change_role) {
       throw publicError(
         403,
-        "You do not have permission to perform this action."
+        "You do not have permission to perform this action.",
       );
     }
 
@@ -226,7 +167,7 @@ async function changeUserRole(actorId, userId, role) {
     ) {
       throw publicError(
         409,
-        "Resolve the staff registration before changing this role."
+        "Resolve the staff registration before changing this role.",
       );
     }
 
@@ -238,38 +179,23 @@ async function changeUserRole(actorId, userId, role) {
       const ownerCount = await repository.countActiveOwners(client);
 
       if (ownerCount <= 1) {
-        throw publicError(
-          409,
-          "The last active Owner cannot be demoted."
-        );
+        throw publicError(409, "The last active Owner cannot be demoted.");
       }
     }
 
     const newRole = await repository.findAssignableRole(client, role);
 
     if (!newRole) {
-      throw publicError(
-        409,
-        "This role is missing from the database."
-      );
+      throw publicError(409, "This role is missing from the database.");
     }
 
-    const user = await repository.updateUserRole(
-      client,
-      userId,
-      newRole.id
-    );
+    const user = await repository.updateUserRole(client, userId, newRole.id);
 
-    await repository.recordUserRoleChange(
-      client,
-      actorId,
-      userId,
-      {
-        previous_role: target.role,
-        new_role: role,
-        status: target.status,
-      }
-    );
+    await repository.recordUserRoleChange(client, actorId, userId, {
+      previous_role: target.role,
+      new_role: role,
+      status: target.status,
+    });
 
     return user;
   });

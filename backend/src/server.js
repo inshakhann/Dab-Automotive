@@ -1,6 +1,9 @@
 // Load .env before importing the database or application.
-require("dotenv").config();
+require("dotenv").config({
+  path: require("path").join(__dirname, "..", ".env"),
+});
 
+require("./config/encryption").encryptionKey();
 const app = require("./app");
 const pool = require("./config/db");
 
@@ -17,6 +20,15 @@ async function startServer() {
       console.log(`Backend running at http://localhost:${PORT}`);
     });
 
+    for (const signal of ["SIGINT", "SIGTERM"]) {
+      process.once(signal, () => {
+        server.close(async () => {
+          await pool.end();
+          process.exit(0);
+        });
+        setTimeout(() => process.exit(1), 10000).unref();
+      });
+    }
     server.on("error", (error) => {
       console.error("Server failed to start:", error.message);
       process.exit(1);

@@ -10,11 +10,7 @@ function checkProfileFields(req, res, next) {
     });
   }
 
-  const allowedFields = [
-    "full_name",
-    "phone",
-    "preferred_language",
-  ];
+  const allowedFields = ["full_name", "phone", "preferred_language"];
 
   const submittedFields = Object.keys(data);
 
@@ -26,7 +22,7 @@ function checkProfileFields(req, res, next) {
   }
 
   const hasUnknownField = submittedFields.some(
-    (field) => !allowedFields.includes(field)
+    (field) => !allowedFields.includes(field),
   );
 
   if (hasUnknownField) {

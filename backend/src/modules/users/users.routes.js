@@ -1,18 +1,10 @@
 const express = require("express");
 
-const {
-  profileValidation,
-} = require("./profile.validation");
+const { profileValidation } = require("./profile.validation");
 
-const {
-  body,
-  param,
-  query,
-} = require("express-validator");
+const { body, param, query } = require("express-validator");
 
-const {
-  statusValidation,
-} = require("./user-status.validation");
+const { statusValidation } = require("./user-status.validation");
 
 const roleValidation = require("./user-role.validation");
 const authenticate = require("../../middleware/authenticate");
@@ -34,12 +26,7 @@ router.get("/me", (req, res) => {
   });
 });
 
-router.put(
-  "/me",
-  profileValidation,
-  validate,
-  controller.updateMyProfile
-);
+router.put("/me", profileValidation, validate, controller.updateMyProfile);
 
 router.get(
   "/",
@@ -71,7 +58,7 @@ router.get(
     .withMessage("Invalid account status."),
 
   validate,
-  controller.listUsers
+  controller.listUsers,
 );
 
 router.put(
@@ -91,7 +78,7 @@ router.put(
     .withMessage("Decision must be approve or reject."),
 
   validate,
-  controller.reviewStaff
+  controller.reviewStaff,
 );
 
 router.put(
@@ -99,7 +86,7 @@ router.put(
   authorize("users.change_status"),
   statusValidation,
   validate,
-  controller.changeUserStatus
+  controller.changeUserStatus,
 );
 
 router.put(
@@ -107,6 +94,8 @@ router.put(
   authorize("users.change_role"),
   roleValidation,
   validate,
-  controller.changeUserRole
+  controller.changeUserRole,
 );
+router.use("/", require("./admin-users.routes"));
+
 module.exports = router;

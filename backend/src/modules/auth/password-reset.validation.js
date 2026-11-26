@@ -15,9 +15,7 @@ function emailRule() {
     .customSanitizer((value) => value.toLowerCase());
 }
 
-const forgotPasswordValidation = [
-  emailRule(),
-];
+const forgotPasswordValidation = [emailRule()];
 
 const resetPasswordValidation = [
   emailRule(),

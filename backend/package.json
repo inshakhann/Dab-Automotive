@@ -1,13 +1,17 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Dab Automotive backend — Insha account, administration and reporting modules",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test test/unit.test.js",
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "migrate": "node database/migrate.js"
+    "migrate": "node database/migrate.js",
+    "test:integration": "node --test --test-concurrency=1 test/integration.test.js",
+    "check": "node scripts/check-syntax.js",
+    "setup:local": "node scripts/setup-local.js",
+    "seed:owner": "node database/seed-owner.js"
   },
   "keywords": [],
   "author": "",
@@ -21,9 +25,14 @@
     "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^10.6.1",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@apidevtools/swagger-parser": "^13.1.0",
     "nodemon": "^3.1.14"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

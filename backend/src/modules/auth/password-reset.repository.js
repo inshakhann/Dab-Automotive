@@ -11,7 +11,7 @@ async function withResetUser(email, action) {
        FROM users
        WHERE LOWER(email) = LOWER($1)
        FOR UPDATE`,
-      [email]
+      [email],
     );
 
     const outcome = await action(result.rows[0], client);
@@ -38,7 +38,7 @@ async function canIssueOtp(client, userId) {
        )::integer AS recent_count
      FROM otp_tokens
      WHERE user_id = $1`,
-    [userId]
+    [userId],
   );
 
   const counts = result.rows[0];
@@ -52,7 +52,7 @@ async function invalidateUserOtps(client, userId) {
      SET used_at = clock_timestamp()
      WHERE user_id = $1
        AND used_at IS NULL`,
-    [userId]
+    [userId],
   );
 }
 
@@ -71,7 +71,7 @@ async function createOtp(client, userId, otpHash) {
        clock_timestamp() + INTERVAL '10 minutes'
      )
      RETURNING id`,
-    [userId, otpHash]
+    [userId, otpHash],
   );
 
   return result.rows[0];
@@ -89,7 +89,7 @@ async function findLatestOtp(client, userId) {
      WHERE user_id = $1
      ORDER BY created_at DESC, id DESC
      LIMIT 1`,
-    [userId]
+    [userId],
   );
 
   return result.rows[0];
@@ -104,16 +104,11 @@ async function recordWrongOtp(client, otpId) {
            ELSE used_at
          END
      WHERE id = $1`,
-    [otpId]
+    [otpId],
   );
 }
 
-async function applyPasswordReset(
-  client,
-  userId,
-  otpId,
-  passwordHash
-) {
+async function applyPasswordReset(client, userId, otpId, passwordHash) {
   const consumed = await client.query(
     `UPDATE otp_tokens
      SET used_at = clock_timestamp()
@@ -123,7 +118,7 @@ async function applyPasswordReset(
        AND attempts < 5
        AND expires_at > clock_timestamp()
      RETURNING id`,
-    [otpId, userId]
+    [otpId, userId],
   );
 
   if (consumed.rowCount === 0) {
@@ -138,11 +133,15 @@ async function applyPasswordReset(
          locked_until = NULL,
          updated_at = clock_timestamp()
      WHERE id = $2`,
-    [passwordHash, userId]
+    [passwordHash, userId],
   );
 
   await invalidateUserOtps(client, userId);
-
+  await client.query(
+    `INSERT INTO audit_logs(actor_user_id,action,entity_type,entity_id,details)
+    VALUES($1,'password.reset','user',$1,'{}'::jsonb)`,
+    [userId],
+  );
   return true;
 }
 
@@ -152,7 +151,7 @@ async function invalidateOtpById(otpId) {
      SET used_at = clock_timestamp()
      WHERE id = $1
        AND used_at IS NULL`,
-    [otpId]
+    [otpId],
   );
 }
 

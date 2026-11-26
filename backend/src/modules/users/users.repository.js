@@ -19,7 +19,7 @@ async function listUsers({ page, limit, status }) {
      WHERE ($1::text IS NULL OR u.status = $1)
      ORDER BY u.id DESC
      LIMIT $2 OFFSET $3`,
-    [status || null, limit, offset]
+    [status || null, limit, offset],
   );
 
   return result.rows;
@@ -44,6 +44,7 @@ async function transaction(action) {
 }
 
 async function lockReviewer(client, actorId) {
+  await client.query("SELECT pg_advisory_xact_lock(874232)");
   const result = await client.query(
     `SELECT
        u.id,
@@ -58,7 +59,7 @@ async function lockReviewer(client, actorId) {
      FROM users u
      WHERE u.id = $1
      FOR SHARE OF u`,
-    [actorId]
+    [actorId],
   );
 
   return result.rows[0];
@@ -78,18 +79,13 @@ async function lockStaffRequest(client, userId) {
      LEFT JOIN roles rr ON rr.id = u.requested_role_id
      WHERE u.id = $1
      FOR UPDATE OF u`,
-    [userId]
+    [userId],
   );
 
   return result.rows[0];
 }
 
-async function updateStaffDecision(
-  client,
-  userId,
-  roleId,
-  status
-) {
+async function updateStaffDecision(client, userId, roleId, status) {
   const result = await client.query(
     `UPDATE users
      SET role_id = $1,
@@ -101,19 +97,13 @@ async function updateStaffDecision(
          updated_at = CURRENT_TIMESTAMP
      WHERE id = $3
      RETURNING id, full_name, email, status`,
-    [roleId, status, userId]
+    [roleId, status, userId],
   );
 
   return result.rows[0];
 }
 
-async function recordStaffDecision(
-  client,
-  actorId,
-  userId,
-  decision,
-  details
-) {
+async function recordStaffDecision(client, actorId, userId, decision, details) {
   await client.query(
     `INSERT INTO audit_logs (
        actor_user_id,
@@ -123,12 +113,7 @@ async function recordStaffDecision(
        details
      )
      VALUES ($1, $2, 'user', $3, $4::jsonb)`,
-    [
-      actorId,
-      `staff.${decision}`,
-      userId,
-      JSON.stringify(details),
-    ]
+    [actorId, `staff.${decision}`, userId, JSON.stringify(details)],
   );
 }
 
@@ -161,18 +146,16 @@ async function updateOwnProfile(userId, changes) {
         changes.phone ?? null,
         changes.preferred_language ?? null,
         userId,
-      ]
+      ],
     );
 
     if (result.rowCount === 0) {
       return null;
     }
 
-    const updatedFields = [
-      "full_name",
-      "phone",
-      "preferred_language",
-    ].filter((field) => changes[field] !== undefined);
+    const updatedFields = ["full_name", "phone", "preferred_language"].filter(
+      (field) => changes[field] !== undefined,
+    );
 
     await client.query(
       `INSERT INTO audit_logs (
@@ -188,7 +171,7 @@ async function updateOwnProfile(userId, changes) {
         JSON.stringify({
           updated_fields: updatedFields,
         }),
-      ]
+      ],
     );
 
     return result.rows[0];
@@ -214,7 +197,7 @@ async function lockStatusActor(client, actorId) {
      FROM users u
      WHERE u.id = $1
      FOR SHARE OF u`,
-    [actorId]
+    [actorId],
   );
 
   return result.rows[0];
@@ -226,7 +209,7 @@ async function countActiveOwners(client) {
      FROM users u
      JOIN roles r ON r.id = u.role_id
      WHERE r.name = 'owner'
-       AND u.status = 'active'`
+       AND u.status = 'active'`,
   );
 
   return result.rows[0].count;
@@ -249,7 +232,7 @@ async function updateUserStatus(client, userId, status) {
        u.email,
        u.status,
        r.name AS role`,
-    [status, userId]
+    [status, userId],
   );
 
   // Previously issued reset codes must not survive a status change.
@@ -258,18 +241,13 @@ async function updateUserStatus(client, userId, status) {
      SET used_at = CURRENT_TIMESTAMP
      WHERE user_id = $1
        AND used_at IS NULL`,
-    [userId]
+    [userId],
   );
 
   return result.rows[0];
 }
 
-async function recordUserStatusChange(
-  client,
-  actorId,
-  userId,
-  details
-) {
+async function recordUserStatusChange(client, actorId, userId, details) {
   await client.query(
     `INSERT INTO audit_logs (
        actor_user_id,
@@ -279,11 +257,7 @@ async function recordUserStatusChange(
        details
      )
      VALUES ($1, 'user.status.update', 'user', $2, $3::jsonb)`,
-    [
-      actorId,
-      userId,
-      JSON.stringify(details),
-    ]
+    [actorId, userId, JSON.stringify(details)],
   );
 }
 
@@ -321,7 +295,7 @@ async function lockRoleActor(client, actorId) {
       WHERE u.id = $1
       FOR SHARE OF u
     `,
-    [actorId]
+    [actorId],
   );
 
   return result.rows[0];
@@ -330,7 +304,7 @@ async function lockRoleActor(client, actorId) {
 async function findAssignableRole(client, roleName) {
   const result = await client.query(
     "SELECT id, name FROM roles WHERE name = $1",
-    [roleName]
+    [roleName],
   );
 
   return result.rows[0];
@@ -354,7 +328,7 @@ async function updateUserRole(client, userId, roleId) {
         u.status,
         r.name AS role
     `,
-    [roleId, userId]
+    [roleId, userId],
   );
 
   // Invalidate outstanding password-reset codes.
@@ -365,18 +339,13 @@ async function updateUserRole(client, userId, roleId) {
       WHERE user_id = $1
         AND used_at IS NULL
     `,
-    [userId]
+    [userId],
   );
 
   return result.rows[0];
 }
 
-async function recordUserRoleChange(
-  client,
-  actorId,
-  userId,
-  details
-) {
+async function recordUserRoleChange(client, actorId, userId, details) {
   await client.query(
     `
       INSERT INTO audit_logs (
@@ -388,7 +357,7 @@ async function recordUserRoleChange(
       )
       VALUES ($1, 'user.role.update', 'user', $2, $3::jsonb)
     `,
-    [actorId, userId, JSON.stringify(details)]
+    [actorId, userId, JSON.stringify(details)],
   );
 }
 

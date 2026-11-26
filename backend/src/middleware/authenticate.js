@@ -1,10 +1,6 @@
-const {
-  verifyAccessToken,
-} = require("../config/jwt");
+const { verifyAccessToken } = require("../config/jwt");
 
-const {
-  findUserById,
-} = require("../modules/auth/auth.repository");
+const { findUserById } = require("../modules/auth/auth.repository");
 
 async function authenticate(req, res, next) {
   const authorization = req.get("Authorization") || "";

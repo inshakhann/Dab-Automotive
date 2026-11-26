@@ -30,12 +30,12 @@ function createLimiter(limit, message) {
 
 const forgotLimiter = createLimiter(
   10,
-  "Too many password-reset requests. Please try again later."
+  "Too many password-reset requests. Please try again later.",
 );
 
 const resetLimiter = createLimiter(
   20,
-  "Too many reset attempts. Please try again later."
+  "Too many reset attempts. Please try again later.",
 );
 
 router.post(
@@ -43,7 +43,7 @@ router.post(
   forgotLimiter,
   forgotPasswordValidation,
   validate,
-  forgotPassword
+  forgotPassword,
 );
 
 router.post(
@@ -51,7 +51,7 @@ router.post(
   resetLimiter,
   resetPasswordValidation,
   validate,
-  resetPassword
+  resetPassword,
 );
 
 module.exports = router;

@@ -22,7 +22,7 @@ function forgotPassword(req, res) {
       // Avoid printing passwords, OTPs or email contents.
       console.error(
         "Password-reset delivery failed. Check database, internet and email settings.",
-        error.code || error.name
+        error.code || error.name,
       );
     }
   });

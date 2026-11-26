@@ -3,16 +3,12 @@ const bcrypt = require("bcrypt");
 
 const repository = require("./password-reset.repository");
 
-const {
-  sendPasswordResetOtp,
-} = require("../../integrations/email.service");
+const { sendPasswordResetOtp } = require("../../integrations/email.service");
 
 const otpSecret = process.env.OTP_SECRET;
 
 if (!otpSecret || Buffer.byteLength(otpSecret, "utf8") < 32) {
-  throw new Error(
-    "OTP_SECRET must contain at least 32 bytes. Check .env."
-  );
+  throw new Error("OTP_SECRET must contain at least 32 bytes. Check .env.");
 }
 
 function hashOtp(userId, otp) {
@@ -23,10 +19,7 @@ function hashOtp(userId, otp) {
 }
 
 function otpMatches(userId, submittedOtp, storedHash) {
-  const submitted = Buffer.from(
-    hashOtp(userId, submittedOtp),
-    "hex"
-  );
+  const submitted = Buffer.from(hashOtp(userId, submittedOtp), "hex");
 
   const stored = Buffer.from(storedHash, "hex");
 
@@ -37,10 +30,7 @@ function otpMatches(userId, submittedOtp, storedHash) {
 }
 
 function canResetPassword(user) {
-  return (
-    user &&
-    ["active", "pending"].includes(user.status)
-  );
+  return user && ["active", "pending"].includes(user.status);
 }
 
 async function requestPasswordReset(email) {
@@ -51,35 +41,26 @@ async function requestPasswordReset(email) {
         return null;
       }
 
-      const allowed = await repository.canIssueOtp(
-        client,
-        user.id
-      );
+      const allowed = await repository.canIssueOtp(client, user.id);
 
       if (!allowed) {
         return null;
       }
 
-      const otp = String(
-        crypto.randomInt(100000, 1000000)
-      );
+      const otp = String(crypto.randomInt(100000, 1000000));
 
       const otpHash = hashOtp(user.id, otp);
 
       await repository.invalidateUserOtps(client, user.id);
 
-      const record = await repository.createOtp(
-        client,
-        user.id,
-        otpHash
-      );
+      const record = await repository.createOtp(client, user.id, otpHash);
 
       return {
         otpId: record.id,
         email: user.email,
         otp,
       };
-    }
+    },
   );
 
   if (!delivery) {
@@ -87,10 +68,7 @@ async function requestPasswordReset(email) {
   }
 
   try {
-    await sendPasswordResetOtp(
-      delivery.email,
-      delivery.otp
-    );
+    await sendPasswordResetOtp(delivery.email, delivery.otp);
   } catch (error) {
     // A code that could not be delivered must not remain usable.
     await repository.invalidateOtpById(delivery.otpId);
@@ -99,45 +77,31 @@ async function requestPasswordReset(email) {
 }
 
 async function resetPassword(data) {
-  const passwordHash = await bcrypt.hash(
-    data.new_password,
-    12
-  );
+  const passwordHash = await bcrypt.hash(data.new_password, 12);
 
-  return repository.withResetUser(
-    data.email,
-    async (user, client) => {
-      if (!canResetPassword(user)) {
-        return false;
-      }
-
-      const record = await repository.findLatestOtp(
-        client,
-        user.id
-      );
-
-      if (
-        !record ||
-        record.used_at ||
-        !record.is_valid ||
-        record.attempts >= 5
-      ) {
-        return false;
-      }
-
-      if (!otpMatches(user.id, data.otp, record.otp_hash)) {
-        await repository.recordWrongOtp(client, record.id);
-        return false;
-      }
-
-      return repository.applyPasswordReset(
-        client,
-        user.id,
-        record.id,
-        passwordHash
-      );
+  return repository.withResetUser(data.email, async (user, client) => {
+    if (!canResetPassword(user)) {
+      return false;
     }
-  );
+
+    const record = await repository.findLatestOtp(client, user.id);
+
+    if (!record || record.used_at || !record.is_valid || record.attempts >= 5) {
+      return false;
+    }
+
+    if (!otpMatches(user.id, data.otp, record.otp_hash)) {
+      await repository.recordWrongOtp(client, record.id);
+      return false;
+    }
+
+    return repository.applyPasswordReset(
+      client,
+      user.id,
+      record.id,
+      passwordHash,
+    );
+  });
 }
 
 module.exports = {
