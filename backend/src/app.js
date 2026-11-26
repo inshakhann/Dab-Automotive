@@ -1,4 +1,6 @@
 const express = require("express");
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./config/swagger");
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./modules/auth/auth.routes");
 const passwordResetRoutes = require("./modules/auth/password-reset.routes");
@@ -21,6 +23,7 @@ app.get("/", (req, res) => {
   });
 });
 
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/auth", passwordResetRoutes);
@@ -52,4 +55,3 @@ app.use((error, req, res, next) => {
 });
 
 module.exports = app;
-

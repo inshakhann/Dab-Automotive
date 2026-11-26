@@ -1,32 +1,35 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "migrate": "node database/migrate.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "dotenv": "^18.0.10",
-    "express": "^5.3.0",
-    "express-rate-limit": "^8.7.5",
-    "express-validator": "^7.3.2",
-    "jsonwebtoken": "^9.0.3",
-    "nodemailer": "^10.6.1",
-    "pg": "^8.23.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
-  },
-  "allowScripts": {
-    "bcrypt@6.0.0": true
-  }
+    "name":  "backend",
+    "version":  "1.0.0",
+    "description":  "",
+    "main":  "index.js",
+    "scripts":  {
+                    "test":  "node --test tests/talha-modules.test.js",
+                    "start":  "node src/server.js",
+                    "dev":  "nodemon src/server.js",
+                    "migrate":  "node database/migrate.js"
+                },
+    "keywords":  [
+
+                 ],
+    "author":  "",
+    "license":  "ISC",
+    "type":  "commonjs",
+    "dependencies":  {
+                         "bcrypt":  "^6.0.0",
+                         "dotenv":  "^18.0.10",
+                         "express":  "^5.3.0",
+                         "express-rate-limit":  "^8.7.5",
+                         "express-validator":  "^7.3.2",
+                         "jsonwebtoken":  "^9.0.3",
+                         "nodemailer":  "^10.6.1",
+                         "pg":  "^8.23.1",
+                         "swagger-ui-express":  "^5.0.1"
+                     },
+    "devDependencies":  {
+                            "nodemon":  "^3.1.14"
+                        },
+    "allowScripts":  {
+                         "bcrypt@6.0.0":  true
+                     }
 }

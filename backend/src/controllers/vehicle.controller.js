@@ -1,4 +1,4 @@
-const vehicleService = require("../services/vehicle.service");
+﻿const vehicleService = require("../services/vehicle.service");
 const customerService = require("../services/customer.service");
 
 const getMyVehicles = async (req, res, next) => {
@@ -127,6 +127,66 @@ const deleteMyVehicle = async (req, res, next) => {
       message: "Vehicle deleted successfully",
     });
   } catch (error) {
+    if (error.status === 400) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+    next(error);
+  }
+};
+
+const getVehicleHistory = async (req, res, next) => {
+  try {
+    const vehicleId = Number(req.params.vehicleId);
+    if (!Number.isInteger(vehicleId) || vehicleId <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid vehicle ID is required",
+      });
+    }
+
+    const role = (req.user.role || "").toLowerCase();
+    let vehicle = null;
+
+    if (role === "owner" || role === "admin" || role === "administrator") {
+      vehicle = await vehicleService.getVehicleByIdForOwner(vehicleId);
+    } else {
+      const customer = await customerService.getCustomerByUserId(req.user.id);
+      if (!customer) {
+        return res.status(404).json({
+          success: false,
+          message: "Customer profile not found",
+        });
+      }
+      vehicle = await vehicleService.getVehicleById(customer.customer_id, vehicleId);
+    }
+
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found or access denied",
+      });
+    }
+
+    const historyData = await vehicleService.getVehicleMaintenanceHistory(vehicleId);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        vehicle: {
+          vehicle_id: vehicle.vehicle_id,
+          make: vehicle.make,
+          model: vehicle.model,
+          year: vehicle.year,
+          plate_no: vehicle.plate_no,
+          mileage: vehicle.mileage,
+        },
+        ...historyData,
+      },
+    });
+  } catch (error) {
     next(error);
   }
 };
@@ -136,4 +196,5 @@ module.exports = {
   addVehicle,
   updateMyVehicle,
   deleteMyVehicle,
+  getVehicleHistory,
 };

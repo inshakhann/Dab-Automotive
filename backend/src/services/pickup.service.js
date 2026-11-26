@@ -1,19 +1,7 @@
-const pool = require("../config/db");
 const { calculateDistanceKm } = require("../adapters/maps.adapter");
+const pickupRepo = require("../modules/pickups/pickup.repository");
 
-const createPickupRequest = async (customerId, bookingId, address, latitude, longitude) => {
-  if (!address || !address.trim()) {
-    throw new Error("Pickup address is required");
-  }
-
-  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
-    throw new Error("Invalid pickup latitude");
-  }
-
-  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
-    throw new Error("Invalid pickup longitude");
-  }
-
+const getWorkshopConfig = () => {
   const workshopLatitude = Number(process.env.WORKSHOP_LATITUDE);
   const workshopLongitude = Number(process.env.WORKSHOP_LONGITUDE);
   const feePerKm = Number(process.env.PICKUP_FEE_PER_KM);
@@ -31,41 +19,58 @@ const createPickupRequest = async (customerId, bookingId, address, latitude, lon
     throw new Error("Workshop location or pickup fee configuration is missing");
   }
 
-  const bookingResult = await pool.query(
-    `SELECT booking_id, status
-     FROM service_bookings
-     WHERE booking_id = $1 AND customer_id = $2`,
-    [bookingId, customerId]
-  );
+  return { workshopLatitude, workshopLongitude, feePerKm };
+};
 
-  if (bookingResult.rows.length === 0) {
+const estimatePickupFee = (latitude, longitude) => {
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+    throw new Error("Invalid pickup latitude");
+  }
+
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    throw new Error("Invalid pickup longitude");
+  }
+
+  const { workshopLatitude, workshopLongitude, feePerKm } = getWorkshopConfig();
+  const distance = calculateDistanceKm(latitude, longitude, workshopLatitude, workshopLongitude);
+  const fee = Number((distance * feePerKm).toFixed(2));
+
+  return {
+    distance_km: distance,
+    pickup_fee: fee,
+    rate_per_km: feePerKm,
+    currency: "PKR",
+  };
+};
+
+const createPickupRequest = async (customerId, bookingId, address, latitude, longitude) => {
+  if (!address || !address.trim()) {
+    throw new Error("Pickup address is required");
+  }
+
+  const { distance_km, pickup_fee } = estimatePickupFee(latitude, longitude);
+  const booking = await pickupRepo.findBookingForCustomer(bookingId, customerId);
+
+  if (!booking) {
     throw new Error("Booking not found");
   }
 
-  if (!["pending", "confirmed"].includes(bookingResult.rows[0].status)) {
+  if (!["pending", "confirmed"].includes(booking.status)) {
     throw new Error("Pickup is not available for this booking");
   }
 
-  const distance = calculateDistanceKm(
+  return pickupRepo.insertPickupRequest({
+    bookingId,
+    customerId,
+    address: address.trim(),
     latitude,
     longitude,
-    workshopLatitude,
-    workshopLongitude
-  );
-
-  const fee = Number((distance * feePerKm).toFixed(2));
-
-  const result = await pool.query(
-    `INSERT INTO pickup_requests
-     (booking_id, customer_id, pickup_address, latitude, longitude, distance_km, pickup_fee)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING *`,
-    [bookingId, customerId, address.trim(), latitude, longitude, distance, fee]
-  );
-
-  return result.rows[0];
+    distance: distance_km,
+    fee: pickup_fee,
+  });
 };
 
 module.exports = {
-  createPickupRequest
+  estimatePickupFee,
+  createPickupRequest,
 };

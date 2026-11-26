@@ -1,4 +1,4 @@
-const nodemailer = require("nodemailer");
+﻿const nodemailer = require("nodemailer");
 
 const mailMode = process.env.MAIL_MODE;
 
@@ -149,7 +149,6 @@ async function sendStaffDecisionEmail(user) {
   }
 }
 
-
 async function sendBookingReminder(reminder) {
   const { transport, from } = await getMailer();
   const hours = reminder.reminderType === "24_hours" ? "24 hours" : "2 hours";
@@ -181,8 +180,28 @@ async function sendBookingReminder(reminder) {
   }
 }
 
+async function sendOwnerOperationalAlert(alert) {
+  const { transport, from } = await getMailer();
+
+  const info = await transport.sendMail({
+    from: { name: "Dab Automotive Reminder Agent", address: from },
+    to: alert.email,
+    subject: alert.title,
+    text: alert.message,
+  });
+
+  if (!info.accepted || info.accepted.length === 0) {
+    throw new Error("The email server did not accept the operational alert.");
+  }
+
+  if (mailMode === "test") {
+    console.log("Open owner alert test email:", nodemailer.getTestMessageUrl(info));
+  }
+}
+
 module.exports = {
   sendPasswordResetOtp,
   sendStaffDecisionEmail,
   sendBookingReminder,
+  sendOwnerOperationalAlert,
 };

@@ -1,82 +1,43 @@
-const pool = require("../config/db");
+const vehicleRepo = require("../modules/vehicles/vehicle.repository");
 
-const getVehicles = async (customerId) => {
-  const result = await pool.query(
-    `SELECT * FROM vehicles
-     WHERE customer_id = $1 AND is_deleted = FALSE
-     ORDER BY vehicle_id DESC`,
-    [customerId]
-  );
-
-  return result.rows;
-};
-
-const getVehicleById = async (customerId, vehicleId) => {
-  const result = await pool.query(
-    `SELECT * FROM vehicles
-     WHERE customer_id = $1
-     AND vehicle_id = $2
-     AND is_deleted = FALSE`,
-    [customerId, vehicleId]
-  );
-
-  return result.rows[0] || null;
-};
-
-const createVehicle = async (customerId, vehicle) => {
-  const { make, model, year, plate_no, fuel_type, mileage } = vehicle;
-
-  const result = await pool.query(
-    `INSERT INTO vehicles
-     (customer_id, make, model, year, plate_no, fuel_type, mileage)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING *`,
-    [customerId, make, model, year, plate_no, fuel_type || null, mileage ?? 0]
-  );
-
-  return result.rows[0];
-};
-
-const updateVehicle = async (customerId, vehicleId, vehicle) => {
-  const { make, model, year, plate_no, fuel_type, mileage } = vehicle;
-
-  const result = await pool.query(
-    `UPDATE vehicles
-     SET make = COALESCE($3, make),
-         model = COALESCE($4, model),
-         year = COALESCE($5, year),
-         plate_no = COALESCE($6, plate_no),
-         fuel_type = COALESCE($7, fuel_type),
-         mileage = COALESCE($8, mileage),
-         updated_at = CURRENT_TIMESTAMP
-     WHERE customer_id = $1
-     AND vehicle_id = $2
-     AND is_deleted = FALSE
-     RETURNING *`,
-    [customerId, vehicleId, make, model, year, plate_no, fuel_type, mileage]
-  );
-
-  return result.rows[0] || null;
-};
+const getVehicles = (customerId) => vehicleRepo.findAllByCustomerId(customerId);
+const getVehicleById = (customerId, vehicleId) => vehicleRepo.findByIdAndCustomer(customerId, vehicleId);
+const getVehicleByIdForOwner = (vehicleId) => vehicleRepo.findByIdWithOwner(vehicleId);
+const createVehicle = (customerId, vehicle) => vehicleRepo.insertVehicle(customerId, vehicle);
+const updateVehicle = (customerId, vehicleId, vehicle) => vehicleRepo.updateVehicleById(customerId, vehicleId, vehicle);
 
 const deleteVehicle = async (customerId, vehicleId) => {
-  const result = await pool.query(
-    `UPDATE vehicles
-     SET is_deleted = TRUE, updated_at = CURRENT_TIMESTAMP
-     WHERE customer_id = $1
-     AND vehicle_id = $2
-     AND is_deleted = FALSE
-     RETURNING vehicle_id`,
-    [customerId, vehicleId]
-  );
+  const active = await vehicleRepo.countActiveBookingsForVehicle(vehicleId);
+  if (active) {
+    const error = new Error("Vehicle with active bookings cannot be deleted");
+    error.status = 400;
+    throw error;
+  }
+  return vehicleRepo.softDeleteVehicle(customerId, vehicleId);
+};
 
-  return result.rows[0] || null;
+const getVehicleMaintenanceHistory = async (vehicleId) => {
+  const hasJobCardsTable = await vehicleRepo.checkJobCardsTableExists();
+
+  if (hasJobCardsTable) {
+    const records = await vehicleRepo.findHistoryWithJobCards(vehicleId);
+    return { source: "bookings_and_job_cards", records };
+  }
+
+  const records = await vehicleRepo.findHistoryFromBookings(vehicleId);
+  return {
+    source: "service_bookings",
+    note: "Job card details will automatically appear once the job_cards module is merged.",
+    records,
+  };
 };
 
 module.exports = {
   getVehicles,
   getVehicleById,
+  getVehicleByIdForOwner,
   createVehicle,
   updateVehicle,
   deleteVehicle,
+  getVehicleMaintenanceHistory,
 };
