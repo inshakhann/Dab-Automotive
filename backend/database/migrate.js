@@ -72,8 +72,8 @@ async function runMigrations() {
 
     console.log("Database migrations completed.");
   } catch (error) {
-    console.error("Migration failed:", error.message);
-    process.exitCode = 1;
+    console.error("Migration failed:", error); // Ab pura error print hoga
+    process.exit(1);
   } finally {
     if (client) {
       client.release();

@@ -2,6 +2,10 @@ const express = require("express");
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./modules/auth/auth.routes");
 const userRoutes = require("./modules/users/users.routes");
+
+// --- SANA KA MODULE YAHAN IMPORT HAI ---
+const workforceRoutes = require('./modules/workforce/workforce.routes');
+
 const app = express();
 
 // Allows the backend to read JSON request bodies.
@@ -18,6 +22,13 @@ app.get("/", (req, res) => {
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+
+// --- SANA KA ROUTE YAHAN CONNECT HAI ---
+app.use('/api/workforce', workforceRoutes);
+// Job Cards Routes
+const jobsRoutes = require('./modules/workforce/jobs/jobs.routes');
+app.use('/api/workforce/jobs', jobsRoutes);
+
 // Handle URLs that do not exist.
 app.use((req, res) => {
   res.status(404).json({
@@ -39,4 +50,4 @@ app.use((error, req, res, next) => {
   });
 });
 
-module.exports = app;
+module.exports = app; // Ab yeh line sabse aakhir mein hai, jo sahi hai
