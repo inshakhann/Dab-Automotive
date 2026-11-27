@@ -53,6 +53,18 @@ async function moderateReview(req, res, next) {
   }
 }
 
+async function removeReview(req, res, next) {
+  try {
+    await reviewsService.deleteReview(req.params.id, req.user.id);
+    return res.status(200).json({
+      success: true,
+      message: "Review deleted successfully",
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 async function getInsights(req, res, next) {
   try {
     const insights = await reviewsService.getSentimentInsights();
@@ -69,5 +81,6 @@ module.exports = {
   submitReview,
   getReviews,
   moderateReview,
+  removeReview,
   getInsights,
 };
