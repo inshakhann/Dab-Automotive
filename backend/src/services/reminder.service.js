@@ -1,8 +1,13 @@
-﻿const pool = require("../config/db");
+const pool = require("../config/db");
 const {
   sendBookingReminder,
   sendOwnerOperationalAlert,
 } = require("../integrations/email.service");
+const {
+  initWhatsApp,
+  sendBookingWhatsAppReminder,
+} = require("../integrations/whatsapp.service");
+const { sendBookingVoiceCallReminder } = require("../integrations/voice.service");
 
 const MAX_RETRIES = 3;
 let running = false;
@@ -45,7 +50,6 @@ async function scanAndAlertOwnerIssues() {
     let delayedAlerts = 0;
     let unconfirmedAlerts = 0;
 
-    // 1. Scan unconfirmed (pending) bookings starting within 2 hours or already past start_time
     const unconfirmedResult = await client.query(
       `SELECT b.booking_id, b.booking_reference, b.start_time,
               p.name AS package_name, v.make, v.model, v.plate_no
@@ -99,7 +103,6 @@ async function scanAndAlertOwnerIssues() {
       }
     }
 
-    // 2. Scan delayed jobs (uses job_cards if merged, otherwise overdue confirmed bookings)
     const jobCardsCheck = await client.query(
       "SELECT to_regclass('public.job_cards') AS table_name"
     );
@@ -188,8 +191,8 @@ const processDueReminders = async () => {
         const result = await client.query(
           `SELECT r.reminder_id, r.reminder_type, r.retry_count,
                   b.booking_reference, b.start_time,
-                  u.id AS user_id, u.email, p.name AS package_name,
-                  v.make, v.model
+                  u.id AS user_id, u.full_name, u.email, u.phone,
+                  p.name AS package_name, v.make, v.model
            FROM reminders r
            JOIN service_bookings b ON b.booking_id = r.booking_id
            JOIN customers c ON c.customer_id = b.customer_id
@@ -214,15 +217,35 @@ const processDueReminders = async () => {
         }
 
         const reminder = result.rows[0];
+        const payload = {
+          ...reminder,
+          fullName: reminder.full_name,
+          reminderType: reminder.reminder_type,
+          bookingReference: reminder.booking_reference,
+          startTime: reminder.start_time,
+          packageName: reminder.package_name,
+        };
 
         try {
-          await sendBookingReminder({
-            ...reminder,
-            reminderType: reminder.reminder_type,
-            bookingReference: reminder.booking_reference,
-            startTime: reminder.start_time,
-            packageName: reminder.package_name,
-          });
+          await sendBookingReminder(payload);
+
+          try {
+            const waRes = await sendBookingWhatsAppReminder(payload);
+            if (waRes.sent) {
+              console.log(`WhatsApp reminder sent to ${waRes.to}`);
+            }
+          } catch (waErr) {
+            console.warn("WhatsApp reminder skipped/failed:", waErr.message);
+          }
+
+          try {
+            const callRes = await sendBookingVoiceCallReminder(payload);
+            if (callRes.called) {
+              console.log(`AI Voice Call initiated to ${callRes.to} (Call ID: ${callRes.callId})`);
+            }
+          } catch (callErr) {
+            console.warn("AI Voice Call skipped/failed:", callErr.message);
+          }
 
           const hoursLabel = reminder.reminder_type === "24_hours" ? "24 hours" : "2 hours";
           await insertInAppNotificationSafe(client, {
@@ -263,6 +286,7 @@ const processDueReminders = async () => {
 };
 
 const startReminderScheduler = () => {
+  initWhatsApp();
   processDueReminders();
   setInterval(processDueReminders, 60000);
   console.log("Booking reminder scheduler started");

@@ -1,0 +1,125 @@
+2026/11/27-13:07:50.659 4fe8 Reusing MANIFEST C:\Users\talha\Desktop\FSD PROJECT\Dab-Automotive\backend\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/11/27-13:07:50.662 4fe8 Recovering log #3820
+2026/11/27-13:07:50.676 4fe8 Reusing old log C:\Users\talha\Desktop\FSD PROJECT\Dab-Automotive\backend\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/003820.log 
+2026/11/27-13:07:51.496 400c Compacting 1@1 + 6@2 files
+2026/11/27-13:07:51.706 400c Generated table #3827@1: 65442 keys, 2217787 bytes
+2026/11/27-13:07:51.839 400c Generated table #3828@1: 73309 keys, 2253320 bytes
+2026/11/27-13:07:51.989 400c Generated table #3829@1: 40978 keys, 2196130 bytes
+2026/11/27-13:07:52.135 400c Generated table #3830@1: 63015 keys, 2230796 bytes
+2026/11/27-13:07:52.318 400c Generated table #3831@1: 41150 keys, 2204840 bytes
+2026/11/27-13:07:52.403 400c Generated table #3832@1: 19644 keys, 2166661 bytes
+2026/11/27-13:07:52.407 400c Generated table #3833@1: 22 keys, 48888 bytes
+2026/11/27-13:07:52.408 400c Compacted 1@1 + 6@2 files => 13318422 bytes
+2026/11/27-13:07:52.410 400c compacted to: files[ 0 3 48 0 0 0 0 ]
+2026/11/27-13:07:52.956 400c Compacting 1@1 + 11@2 files
+2026/11/27-13:07:53.068 400c Generated table #3834@1: 29837 keys, 2208217 bytes
+2026/11/27-13:07:53.192 400c Generated table #3835@1: 24831 keys, 2260540 bytes
+2026/11/27-13:07:53.342 400c Generated table #3836@1: 21015 keys, 2314026 bytes
+2026/11/27-13:07:53.460 400c Generated table #3837@1: 18008 keys, 2180524 bytes
+2026/11/27-13:07:53.530 400c Generated table #3838@1: 7684 keys, 2129246 bytes
+2026/11/27-13:07:53.594 400c Generated table #3839@1: 8520 keys, 2130650 bytes
+2026/11/27-13:07:53.702 400c Generated table #3840@1: 69065 keys, 2210007 bytes
+2026/11/27-13:07:53.859 400c Generated table #3841@1: 98923 keys, 2247334 bytes
+2026/11/27-13:07:54.063 400c Generated table #3842@1: 97177 keys, 2246432 bytes
+2026/11/27-13:07:54.191 400c Generated table #3843@1: 97338 keys, 2246565 bytes
+2026/11/27-13:07:54.201 400c Generated table #3844@1: 4517 keys, 107167 bytes
+2026/11/27-13:07:54.201 400c Compacted 1@1 + 11@2 files => 22280708 bytes
+2026/11/27-13:07:54.202 400c compacted to: files[ 0 2 48 0 0 0 0 ]
+2026/11/27-13:07:54.203 400c Delete type=2 #3742
+2026/11/27-13:07:54.203 400c Delete type=2 #3802
+2026/11/27-13:07:54.203 400c Delete type=2 #3803
+2026/11/27-13:07:54.203 400c Delete type=2 #3804
+2026/11/27-13:07:54.203 400c Delete type=2 #3805
+2026/11/27-13:07:54.203 400c Delete type=2 #3806
+2026/11/27-13:07:54.203 400c Delete type=2 #3807
+2026/11/27-13:07:54.203 400c Delete type=2 #3810
+2026/11/27-13:07:54.203 400c Delete type=2 #3811
+2026/11/27-13:07:54.204 400c Delete type=2 #3812
+2026/11/27-13:07:54.204 400c Delete type=2 #3813
+2026/11/27-13:07:54.204 400c Delete type=2 #3814
+2026/11/27-13:07:54.204 400c Delete type=2 #3815
+2026/11/27-13:07:54.204 400c Delete type=2 #3816
+2026/11/27-13:07:54.204 400c Delete type=2 #3817
+2026/11/27-13:07:54.204 400c Delete type=2 #3818
+2026/11/27-13:07:54.204 400c Delete type=2 #3819
+2026/11/27-13:07:54.204 400c Delete type=2 #3822
+2026/11/27-13:07:54.204 400c Delete type=2 #3824
+2026/11/27-13:07:54.485 4eb0 Compacting 1@1 + 5@2 files
+2026/11/27-13:07:54.624 4eb0 Generated table #3845@1: 97573 keys, 2246374 bytes
+2026/11/27-13:07:54.786 4eb0 Generated table #3846@1: 98313 keys, 2248029 bytes
+2026/11/27-13:07:54.989 4eb0 Generated table #3847@1: 97509 keys, 2245058 bytes
+2026/11/27-13:07:55.133 4eb0 Generated table #3848@1: 74063 keys, 2220995 bytes
+2026/11/27-13:07:55.150 4eb0 Generated table #3849@1: 6711 keys, 231773 bytes
+2026/11/27-13:07:55.150 4eb0 Compacted 1@1 + 5@2 files => 9192229 bytes
+2026/11/27-13:07:55.152 4eb0 compacted to: files[ 0 1 48 0 0 0 0 ]
+2026/11/27-13:08:00.708 400c Compacting 1@1 + 11@2 files
+2026/11/27-13:08:00.786 400c Generated table #3850@1: 2083 keys, 2141382 bytes
+2026/11/27-13:08:00.862 400c Generated table #3851@1: 3159 keys, 2156826 bytes
+2026/11/27-13:08:00.981 400c Generated table #3852@1: 2554 keys, 2153154 bytes
+2026/11/27-13:08:01.052 400c Generated table #3853@1: 2519 keys, 2153361 bytes
+2026/11/27-13:08:01.108 400c Generated table #3854@1: 2328 keys, 2150522 bytes
+2026/11/27-13:08:01.204 400c Generated table #3855@1: 6839 keys, 2159590 bytes
+2026/11/27-13:08:01.340 400c Generated table #3856@1: 37580 keys, 2246461 bytes
+2026/11/27-13:08:01.514 400c Generated table #3857@1: 28258 keys, 2267324 bytes
+2026/11/27-13:08:01.638 400c Generated table #3858@1: 29149 keys, 2262562 bytes
+2026/11/27-13:08:01.765 400c Generated table #3859@1: 27882 keys, 2264743 bytes
+2026/11/27-13:08:01.783 400c Generated table #3860@1: 1191 keys, 636555 bytes
+2026/11/27-13:08:01.783 400c Compacted 1@1 + 11@2 files => 22592480 bytes
+2026/11/27-13:08:01.784 400c compacted to: files[ 0 0 48 0 0 0 0 ]
+2026/11/27-13:08:01.785 400c Delete type=2 #3714
+2026/11/27-13:08:01.785 400c Delete type=2 #3743
+2026/11/27-13:08:01.785 400c Delete type=2 #3744
+2026/11/27-13:08:01.785 400c Delete type=2 #3745
+2026/11/27-13:08:01.785 400c Delete type=2 #3746
+2026/11/27-13:08:01.785 400c Delete type=2 #3760
+2026/11/27-13:08:01.785 400c Delete type=2 #3761
+2026/11/27-13:08:01.785 400c Delete type=2 #3764
+2026/11/27-13:08:01.785 400c Delete type=2 #3788
+2026/11/27-13:08:01.785 400c Delete type=2 #3789
+2026/11/27-13:08:01.785 400c Delete type=2 #3790
+2026/11/27-13:08:01.785 400c Delete type=2 #3791
+2026/11/27-13:08:01.785 400c Delete type=2 #3792
+2026/11/27-13:08:01.785 400c Delete type=2 #3793
+2026/11/27-13:08:01.785 400c Delete type=2 #3794
+2026/11/27-13:08:01.785 400c Delete type=2 #3809
+2026/11/27-13:08:01.785 400c Delete type=2 #3823
+2026/11/27-13:08:01.785 400c Delete type=2 #3825
+2026/11/27-13:08:07.310 400c Level-0 table #3862: started
+2026/11/27-13:08:07.349 400c Level-0 table #3862: 1102602 bytes OK
+2026/11/27-13:08:07.351 400c Delete type=0 #3820
+2026/11/27-13:08:07.356 400c Compacting 1@0 + 0@1 files
+2026/11/27-13:08:07.403 400c Generated table #3863@0: 20344 keys, 393074 bytes
+2026/11/27-13:08:07.418 400c Generated table #3864@0: 2601 keys, 174543 bytes
+2026/11/27-13:08:07.422 400c Generated table #3865@0: 46 keys, 2145 bytes
+2026/11/27-13:08:07.422 400c Compacted 1@0 + 0@1 files => 569762 bytes
+2026/11/27-13:08:07.423 400c compacted to: files[ 0 3 48 0 0 0 0 ]
+2026/11/27-13:08:07.789 400c Compacting 1@1 + 6@2 files
+2026/11/27-13:08:07.990 400c Generated table #3866@1: 62478 keys, 2212373 bytes
+2026/11/27-13:08:08.129 400c Generated table #3867@1: 76843 keys, 2257120 bytes
+2026/11/27-13:08:08.229 400c Generated table #3868@1: 38457 keys, 2192769 bytes
+2026/11/27-13:08:08.404 400c Generated table #3869@1: 64310 keys, 2231918 bytes
+2026/11/27-13:08:08.526 400c Generated table #3870@1: 42296 keys, 2206578 bytes
+2026/11/27-13:08:08.614 400c Generated table #3871@1: 20516 keys, 2165608 bytes
+2026/11/27-13:08:08.619 400c Generated table #3872@1: 50 keys, 96042 bytes
+2026/11/27-13:08:08.619 400c Compacted 1@1 + 6@2 files => 13362408 bytes
+2026/11/27-13:08:08.620 400c compacted to: files[ 0 2 49 0 0 0 0 ]
+2026/11/27-13:08:08.621 400c Delete type=2 #3862
+2026/11/27-13:08:09.552 400c Compacting 1@1 + 4@2 files
+2026/11/27-13:08:09.641 400c Generated table #3873@1: 29837 keys, 2208344 bytes
+2026/11/27-13:08:09.750 400c Generated table #3874@1: 24831 keys, 2260540 bytes
+2026/11/27-13:08:09.908 400c Generated table #3875@1: 21015 keys, 2314026 bytes
+2026/11/27-13:08:10.050 400c Generated table #3876@1: 18011 keys, 2180592 bytes
+2026/11/27-13:08:10.050 400c Compacted 1@1 + 4@2 files => 8963502 bytes
+2026/11/27-13:08:10.052 400c compacted to: files[ 0 1 49 0 0 0 0 ]
+2026/11/27-13:08:10.053 400c Delete type=2 #3827
+2026/11/27-13:08:10.053 400c Delete type=2 #3828
+2026/11/27-13:08:10.053 400c Delete type=2 #3829
+2026/11/27-13:08:10.053 400c Delete type=2 #3830
+2026/11/27-13:08:10.054 400c Delete type=2 #3831
+2026/11/27-13:08:10.054 400c Delete type=2 #3832
+2026/11/27-13:08:10.055 400c Delete type=2 #3834
+2026/11/27-13:08:10.055 400c Delete type=2 #3835
+2026/11/27-13:08:10.055 400c Delete type=2 #3836
+2026/11/27-13:08:10.055 400c Delete type=2 #3837
+2026/11/27-13:08:10.055 400c Delete type=2 #3863
+2026/11/27-13:08:10.055 400c Delete type=2 #3864
