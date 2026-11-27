@@ -5,6 +5,9 @@ const userRoutes = require("./modules/users/users.routes");
 const passwordResetRoutes = require(
   "./modules/auth/password-reset.routes"
 );
+const reviewRoutes = require("./modules/reviews/reviews.routes");
+const agentRoutes = require("./modules/agents/agents.routes");
+const notificationRoutes = require("./modules/notifications/notifications.routes");
 
 const app = express();
 
@@ -23,6 +26,10 @@ app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", passwordResetRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/agents", agentRoutes);
+app.use("/api/notifications", notificationRoutes);
+
 // Handle URLs that do not exist.
 app.use((req, res) => {
   res.status(404).json({
