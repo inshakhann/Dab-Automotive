@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const { createAccessToken } = require("../src/config/jwt");
 const app = require("../src/app");
 const pool = require("../src/config/db");
-const { scanAndAlertOwnerIssues } = require("../src/services/reminder.service");
+const { scanAndAlertOwnerIssues } = require("../src/modules/reminders/reminder.service");
 
 let server;
 let baseUrl;

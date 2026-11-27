@@ -1,17 +1,17 @@
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./config/swagger");
-const healthRoutes = require("./routes/health.routes");
+const healthRoutes = require("./modules/health/health.routes");
 const authRoutes = require("./modules/auth/auth.routes");
 const passwordResetRoutes = require("./modules/auth/password-reset.routes");
 const userRoutes = require("./modules/users/users.routes");
-const serviceRoutes = require("./routes/service.routes");
-const packageRoutes = require("./routes/package.routes");
-const bayRoutes = require("./routes/bay.routes");
-const bookingRoutes = require("./routes/booking.routes");
-const customerRoutes = require("./routes/customer.routes");
-const vehicleRoutes = require("./routes/vehicle.routes");
-const pickupRoutes = require("./routes/pickup.routes");
+const serviceRoutes = require("./modules/services/service.routes");
+const packageRoutes = require("./modules/packages/package.routes");
+const bayRoutes = require("./modules/bays/bay.routes");
+const bookingRoutes = require("./modules/bookings/booking.routes");
+const customerRoutes = require("./modules/customers/customer.routes");
+const vehicleRoutes = require("./modules/vehicles/vehicle.routes");
+const pickupRoutes = require("./modules/pickups/pickup.routes");
 
 const app = express();
 
