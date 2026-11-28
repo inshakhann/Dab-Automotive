@@ -24,7 +24,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 
 // --- SANA KA ROUTE YAHAN CONNECT HAI ---
-app.use('/api/workforce', workforceRoutes);
+const workersRoutes = require('./modules/workforce/workers/workers.routes');
+app.use('/api/workforce/workers', workersRoutes); 
 // Job Cards Routes
 const jobsRoutes = require('./modules/workforce/jobs/jobs.routes');
 app.use('/api/workforce/jobs', jobsRoutes);
