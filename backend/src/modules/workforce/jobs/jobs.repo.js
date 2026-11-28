@@ -113,7 +113,12 @@ const getMechanicDashboard = async (workerId) => {
         todayAttendance: attendanceResult.rows[0] || null
     };
 };
-
+// 9. Job ID se Job nikalna (State Machine ke liye)
+const getJobById = async (jobId) => {
+    const query = `SELECT * FROM job_cards WHERE id = $1`;
+    const result = await db.query(query, [jobId]);
+    return result.rows[0];
+};
 // SAARE FUNCTIONS EK SATH EXPORT KAREIN (Sirf ek dafa)
 module.exports = { 
     createJobCard, 
@@ -123,5 +128,6 @@ module.exports = {
     updateJobStatus, 
     saveJobPhoto,
     getVehicleHistory,
-    getMechanicDashboard
+    getMechanicDashboard,
+    getJobById
 };
