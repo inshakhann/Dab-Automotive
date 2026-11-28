@@ -45,7 +45,6 @@ const saveInspection = async (req, res) => {
     }
 };
 
-// 5. Job ka Status update kare
 const updateStatus = async (req, res) => {
     try {
         const { jobId } = req.params;
@@ -53,12 +52,24 @@ const updateStatus = async (req, res) => {
         const changedBy = req.user ? req.user.id : 1; 
         
         const updatedJob = await jobsService.changeJobStatus(jobId, newStatus, changedBy);
+
+        // --- SOCKET.IO EVENT EMIT KAREIN ---
+        const io = req.app.get('socketio');
+        if (io) {
+            // Sirf usi customer ko bhejein jo is job ko track kar raha hai
+            io.to(`job_${jobId}`).emit("status_updated", {
+                jobId: jobId,
+                newStatus: newStatus,
+                message: `Your vehicle status is now: ${newStatus}`
+            });
+            console.log(`Socket Event sent for job ${jobId}: ${newStatus}`);
+        }
+
         res.status(200).json({ success: true, message: "Status updated", data: updatedJob });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
-
 // 6. Mechanic Photo upload kare
 const uploadPhoto = async (req, res) => {
     try {

@@ -1,30 +1,42 @@
-// Load .env before importing the database or application.
-require("dotenv").config();
+// FILE: src/server.js
+require('dotenv').config();
+const app = require('./app');
+const http = require('http');
+const { Server } = require('socket.io');
 
-const app = require("./app");
-const pool = require("./config/db");
 
-const PORT = Number(process.env.PORT) || 5000;
+const PORT = process.env.PORT || 5000;
 
-async function startServer() {
-  try {
-    // Check the database before starting the API server.
-    await pool.query("SELECT 1");
+// HTTP server banayein (Express app ke sath)
+const server = http.createServer(app);
 
-    console.log("PostgreSQL connected successfully");
+// Socket.IO ko server ke sath initialize karein
+const io = new Server(server, {
+    cors: {
+        origin: "*", // Filhal sab allow karein (Production mein isko restrict karenge)
+        methods: ["GET", "POST", "PUT"]
+    }
+});
 
-    const server = app.listen(PORT, () => {
-      console.log(`Backend running at http://localhost:${PORT}`);
+// Socket.IO connection logic
+io.on("connection", (socket) => {
+    console.log("A user connected:", socket.id);
+
+    // Jab customer kisi specific job (vehicle) ko track karna chahe
+    socket.on("track_job", (jobId) => {
+        socket.join(`job_${jobId}`); // Customer ko us job ke "room" mein daal dein
+        console.log(`User joined room: job_${jobId}`);
     });
 
-    server.on("error", (error) => {
-      console.error("Server failed to start:", error.message);
-      process.exit(1);
+    socket.on("disconnect", () => {
+        console.log("User disconnected");
     });
-  } catch (error) {
-    console.error("Database connection failed:", error.message);
-    process.exit(1);
-  }
-}
+});
 
-startServer();
+// Socket.IO ka instance app ke andar save karein taake controllers use kar sakein
+app.set('socketio', io);
+
+// Server start karein (app.listen nahi, balke server.listen chalayein)
+server.listen(PORT, () => {
+    console.log(`Backend running at http://localhost:${PORT}`);
+});
