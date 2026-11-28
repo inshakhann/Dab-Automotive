@@ -21,12 +21,15 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 
 // --- SANA KA ROUTE YAHAN CONNECT HAI ---
+// Workers Routes
 const workersRoutes = require('./modules/workforce/workers/workers.routes');
 app.use('/api/workforce/workers', workersRoutes); 
 // Job Cards Routes
 const jobsRoutes = require('./modules/workforce/jobs/jobs.routes');
 app.use('/api/workforce/jobs', jobsRoutes);
-
+// Invoice Routes
+const invoicesRoutes = require('./modules/workforce/invoices/invoices.routes');
+app.use('/api/workforce/invoices', invoicesRoutes);
 // Handle URLs that do not exist.
 app.use((req, res) => {
   res.status(404).json({
