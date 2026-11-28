@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Tracking Test</title>
+    <!-- Socket.IO Client Library -->
+    <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+</head>
+<body style="font-family: Arial; padding: 20px;">
+    <h1>Customer Live Tracking</h1>
+    <p><strong>Tracking Job ID:</strong> 1</p>
+    <p><strong>Status:</strong> <span id="status" style="color: blue; font-weight: bold;">Connecting...</span></p>
+    <p><strong>Log:</strong></p>
+    <div id="log" style="background: #f4f4f4; padding: 10px; height: 200px; overflow-y: scroll; border: 1px solid #ccc;"></div>
+
+    <script>
+        // Server se connect karein
+        const socket = io("http://localhost:5000");
+
+        socket.on("connect", () => {
+            console.log("Connected to server");
+            document.getElementById("status").innerText = "Connected. Waiting for updates...";
+            
+            // Server ko bolein ke hum Job ID 1 ko track karna chahte hain
+            socket.emit("track_job", 1); 
+        });
+
+        // Jab mechanic status update karega, toh yeh event chalega
+        socket.on("status_updated", (data) => {
+            const logDiv = document.getElementById("log");
+            logDiv.innerHTML += `<p><strong>Update:</strong> Job ${data.jobId} is now <span style="color: green;">${data.newStatus}</span></p>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            
+            // Status text update karein
+            document.getElementById("status").innerText = data.newStatus;
+        });
+
+        socket.on("disconnect", () => {
+            document.getElementById("status").innerText = "Disconnected from server";
+        });
+    </script>
+</body>
+</html>

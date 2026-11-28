@@ -72,6 +72,47 @@ const saveJobPhoto = async (jobId, photoUrl, uploadedBy) => {
     const result = await db.query(query, [jobId, photoUrl, uploadedBy]);
     return result.rows[0];
 };
+// 7. Vehicle ki maintenance history nikalne ka function
+const getVehicleHistory = async (vehicleId) => {
+    const query = `
+        SELECT 
+            jc.id AS job_card_id,
+            jc.complaint_details,
+            jc.status,
+            jc.created_at,
+            ji.faults_found,
+            ji.mechanic_notes,
+            i.total_amount,
+            i.status AS invoice_status
+        FROM job_cards jc
+        LEFT JOIN job_inspections ji ON jc.id = ji.job_card_id
+        LEFT JOIN invoices i ON jc.id = i.job_card_id
+        WHERE jc.vehicle_id = $1 AND jc.status = 'Completed'
+        ORDER BY jc.created_at DESC;
+    `;
+    const result = await db.query(query, [vehicleId]);
+    return result.rows;
+};
+// 8. Mechanic Dashboard ka data lana
+const getMechanicDashboard = async (workerId) => {
+    const jobsQuery = `
+        SELECT * FROM job_cards 
+        WHERE assigned_worker_id = $1 AND status != 'Completed' AND status != 'Cancelled'
+        ORDER BY created_at DESC;
+    `;
+    const jobsResult = await db.query(jobsQuery, [workerId]);
+
+    const attendanceQuery = `
+        SELECT * FROM worker_attendance 
+        WHERE worker_id = $1 AND date = CURRENT_DATE;
+    `;
+    const attendanceResult = await db.query(attendanceQuery, [workerId]);
+
+    return {
+        activeJobs: jobsResult.rows,
+        todayAttendance: attendanceResult.rows[0] || null
+    };
+};
 
 // SAARE FUNCTIONS EK SATH EXPORT KAREIN (Sirf ek dafa)
 module.exports = { 
@@ -80,5 +121,7 @@ module.exports = {
     getMechanicJobs, 
     saveInspection, 
     updateJobStatus, 
-    saveJobPhoto 
+    saveJobPhoto,
+    getVehicleHistory,
+    getMechanicDashboard
 };

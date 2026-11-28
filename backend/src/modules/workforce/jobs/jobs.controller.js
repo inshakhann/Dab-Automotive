@@ -45,6 +45,7 @@ const saveInspection = async (req, res) => {
     }
 };
 
+// 5. Job ka Status update kare
 const updateStatus = async (req, res) => {
     try {
         const { jobId } = req.params;
@@ -52,17 +53,15 @@ const updateStatus = async (req, res) => {
         const changedBy = req.user ? req.user.id : 1; 
         
         const updatedJob = await jobsService.changeJobStatus(jobId, newStatus, changedBy);
-
-        // --- SOCKET.IO EVENT EMIT KAREIN ---
+        
+        // Socket.IO Event
         const io = req.app.get('socketio');
         if (io) {
-            // Sirf usi customer ko bhejein jo is job ko track kar raha hai
             io.to(`job_${jobId}`).emit("status_updated", {
                 jobId: jobId,
                 newStatus: newStatus,
                 message: `Your vehicle status is now: ${newStatus}`
             });
-            console.log(`Socket Event sent for job ${jobId}: ${newStatus}`);
         }
 
         res.status(200).json({ success: true, message: "Status updated", data: updatedJob });
@@ -70,18 +69,16 @@ const updateStatus = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
 // 6. Mechanic Photo upload kare
 const uploadPhoto = async (req, res) => {
     try {
         const { jobId } = req.params;
-        
         if (!req.file) {
             return res.status(400).json({ success: false, message: "No photo uploaded" });
         }
-
         const photoUrl = `/uploads/${req.file.filename}`;
         const uploadedBy = req.user ? req.user.id : 1;
-
         const photo = await jobsService.savePhoto(jobId, photoUrl, uploadedBy);
         res.status(201).json({ success: true, message: "Photo uploaded", data: photo });
     } catch (error) {
@@ -89,12 +86,36 @@ const uploadPhoto = async (req, res) => {
     }
 };
 
-// Saare functions ek sath export karein (Sirf ek dafa)
+// 7. Vehicle History nikalna
+const getVehicleHistory = async (req, res) => {
+    try {
+        const { vehicleId } = req.params;
+        const history = await jobsService.getMaintenanceHistory(vehicleId);
+        res.status(200).json({ success: true, data: history });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 8. Mechanic Dashboard
+const getMechanicDashboard = async (req, res) => {
+    try {
+        const { workerId } = req.params;
+        const dashboard = await jobsService.getDashboardData(workerId);
+        res.status(200).json({ success: true, data: dashboard });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Saare functions ek sath export karein
 module.exports = { 
     createJob, 
     assignJob, 
     getAssignedJobs, 
     saveInspection, 
     updateStatus, 
-    uploadPhoto 
+    uploadPhoto,
+    getVehicleHistory,
+    getMechanicDashboard
 };

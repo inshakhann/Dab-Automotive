@@ -31,12 +31,24 @@ const savePhoto = async (jobId, photoUrl, uploadedBy) => {
     return await jobsRepo.saveJobPhoto(jobId, photoUrl, uploadedBy);
 };
 
-// SAARE FUNCTIONS EK SATH EXPORT KAREIN (Sirf ek dafa)
+// 7. Vehicle Maintenance History
+const getMaintenanceHistory = async (vehicleId) => {
+    return await jobsRepo.getVehicleHistory(vehicleId);
+};
+
+// 8. Mechanic Dashboard Data
+const getDashboardData = async (workerId) => {
+    return await jobsRepo.getMechanicDashboard(workerId);
+};
+
+// SAARE FUNCTIONS EK SATH EXPORT KAREIN
 module.exports = { 
     createJob, 
     assignJob, 
     getAssignedJobs, 
     saveJobInspection, 
     changeJobStatus, 
-    savePhoto 
+    savePhoto,
+    getMaintenanceHistory,
+    getDashboardData
 };

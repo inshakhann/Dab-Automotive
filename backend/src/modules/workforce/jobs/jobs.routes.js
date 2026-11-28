@@ -3,24 +3,23 @@ const express = require('express');
 const router = express.Router();
 const jobsController = require('./jobs.controller');
 const authenticate = require('../../../middleware/authenticate');
+const upload = require('../../../middleware/upload.middleware'); // Multer
 
-// Multer Middleware Import (Photos ke liye)
-const upload = require('../../../middleware/upload.middleware'); // Path check kar lein
-
-// --- Routes ---
-// Job create aur assign
+// --- Job Create & Assign ---
 router.post('/create', authenticate, jobsController.createJob);
 router.put('/:jobId/assign', authenticate, jobsController.assignJob);
 
-// Mechanic apne assigned jobs dekhe
+// --- Mechanic Jobs & Dashboard ---
 router.get('/assigned/:workerId', authenticate, jobsController.getAssignedJobs);
+router.get('/dashboard/mechanic/:workerId', authenticate, jobsController.getMechanicDashboard); // <-- Naya Route
 
-// Inspection aur Status Update
+// --- Inspection, Status & Photos ---
 router.post('/:jobId/inspection', authenticate, jobsController.saveInspection);
 router.put('/:jobId/status', authenticate, jobsController.updateStatus);
-
-// Photo Upload (Yahan upload.single('photo') middleware laga hai)
 router.post('/:jobId/photos', authenticate, upload.single('photo'), jobsController.uploadPhoto);
+
+// --- Vehicle History ---
+router.get('/vehicles/:vehicleId/history', authenticate, jobsController.getVehicleHistory);
 
 // Sabse aakhir mein export
 module.exports = router;
