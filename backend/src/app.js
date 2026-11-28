@@ -3,9 +3,6 @@ const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./modules/auth/auth.routes");
 const userRoutes = require("./modules/users/users.routes");
 
-// --- SANA KA MODULE YAHAN IMPORT HAI ---
-const workforceRoutes = require('./modules/workforce/workforce.routes');
-
 const app = express();
 
 // Allows the backend to read JSON request bodies.
