@@ -1,7 +1,6 @@
 // FILE: src/modules/workforce/jobs/jobs.controller.js
 const jobsService = require('./jobs.service');
 
-// 1. Owner Job Card banaye
 const createJob = async (req, res) => {
     try {
         const newJob = await jobsService.createJob(req.body);
@@ -11,30 +10,46 @@ const createJob = async (req, res) => {
     }
 };
 
-// 2. Owner Job ko Mechanic assign kare
 const assignJob = async (req, res) => {
     try {
         const { jobId } = req.params;
-        const { workerId } = req.body; 
-        const updatedJob = await jobsService.assignJob(jobId, workerId);
+        const { workerId, bayId } = req.body;
+        const updatedJob = await jobsService.assignJob(jobId, workerId, bayId);
         res.status(200).json({ success: true, message: "Job assigned successfully", data: updatedJob });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(400).json({ success: false, message: error.message });
     }
 };
 
-// 3. Mechanic apne jobs dekhe
 const getAssignedJobs = async (req, res) => {
     try {
-        const { workerId } = req.params;
-        const jobs = await jobsService.getAssignedJobs(workerId);
+        const jobs = await jobsService.getAssignedJobs(req.user, req.params.workerId);
         res.status(200).json({ success: true, data: jobs });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(400).json({ success: false, message: error.message });
     }
 };
 
-// 4. Mechanic Inspection save kare
+const getJobById = async (req, res) => {
+    try {
+        const job = await jobsService.getSingleJob(req.params.jobId);
+        res.status(200).json({ success: true, data: job });
+    } catch (error) {
+        const status = error.message === "Job not found" ? 404 : 500;
+        res.status(status).json({ success: false, message: error.message });
+    }
+};
+
+const updateJob = async (req, res) => {
+    try {
+        const updated = await jobsService.editJob(req.params.jobId, req.body);
+        res.status(200).json({ success: true, message: "Job card updated", data: updated });
+    } catch (error) {
+        const status = error.message === "Job not found" ? 404 : 500;
+        res.status(status).json({ success: false, message: error.message });
+    }
+};
+
 const saveInspection = async (req, res) => {
     try {
         const { jobId } = req.params;
@@ -45,32 +60,39 @@ const saveInspection = async (req, res) => {
     }
 };
 
-// 5. Job ka Status update kare
 const updateStatus = async (req, res) => {
     try {
         const { jobId } = req.params;
-        const { newStatus } = req.body;
-        const changedBy = req.user ? req.user.id : 1; 
-        
-        const updatedJob = await jobsService.changeJobStatus(jobId, newStatus, changedBy);
-        
-        // Socket.IO Event
+        const { newStatus, labour_cost, parts_cost, pickup_fee } = req.body;
+        const changedBy = req.user.id;
+
+        const result = await jobsService.changeJobStatus(jobId, newStatus, changedBy, {
+            labour_cost,
+            parts_cost,
+            pickup_fee
+        });
+
+        // Socket.IO Real-Time Update
         const io = req.app.get('socketio');
         if (io) {
             io.to(`job_${jobId}`).emit("status_updated", {
-                jobId: jobId,
+                jobId: Number(jobId),
                 newStatus: newStatus,
-                message: `Your vehicle status is now: ${newStatus}`
+                message: `Your vehicle status is now: ${newStatus}`,
+                updatedAt: new Date()
             });
         }
 
-        res.status(200).json({ success: true, message: "Status updated", data: updatedJob });
+        res.status(200).json({
+            success: true,
+            message: newStatus === 'Completed' ? "Job completed and invoice generated" : "Status updated",
+            data: result
+        });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(400).json({ success: false, message: error.message });
     }
 };
 
-// 6. Mechanic Photo upload kare
 const uploadPhoto = async (req, res) => {
     try {
         const { jobId } = req.params;
@@ -78,15 +100,15 @@ const uploadPhoto = async (req, res) => {
             return res.status(400).json({ success: false, message: "No photo uploaded" });
         }
         const photoUrl = `/uploads/${req.file.filename}`;
-        const uploadedBy = req.user ? req.user.id : 1;
-        const photo = await jobsService.savePhoto(jobId, photoUrl, uploadedBy);
+        const uploadedBy = req.user.id;
+        const caption = req.body.caption || null;
+        const photo = await jobsService.savePhoto(jobId, photoUrl, uploadedBy, caption);
         res.status(201).json({ success: true, message: "Photo uploaded", data: photo });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// 7. Vehicle History nikalna
 const getVehicleHistory = async (req, res) => {
     try {
         const { vehicleId } = req.params;
@@ -97,24 +119,23 @@ const getVehicleHistory = async (req, res) => {
     }
 };
 
-// 8. Mechanic Dashboard
 const getMechanicDashboard = async (req, res) => {
     try {
-        const { workerId } = req.params;
-        const dashboard = await jobsService.getDashboardData(workerId);
+        const dashboard = await jobsService.getDashboardData(req.user, req.params.workerId);
         res.status(200).json({ success: true, data: dashboard });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(400).json({ success: false, message: error.message });
     }
 };
 
-// Saare functions ek sath export karein
-module.exports = { 
-    createJob, 
-    assignJob, 
-    getAssignedJobs, 
-    saveInspection, 
-    updateStatus, 
+module.exports = {
+    createJob,
+    assignJob,
+    getAssignedJobs,
+    getJobById,
+    updateJob,
+    saveInspection,
+    updateStatus,
     uploadPhoto,
     getVehicleHistory,
     getMechanicDashboard

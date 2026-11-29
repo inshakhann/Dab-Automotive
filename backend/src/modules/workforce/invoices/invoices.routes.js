@@ -2,12 +2,14 @@
 const express = require('express');
 const router = express.Router();
 const invoicesController = require('./invoices.controller');
-const authenticate = require('../../../middleware/authenticate'); 
+const authenticate = require('../../../middleware/authenticate');
+const authorize = require('../../../middleware/authorize');
+const validate = require('../../../middleware/validate');
+const { createInvoiceValidation, paymentValidation } = require('../workforce.validation');
 
-// Routes
-router.post('/create', authenticate, invoicesController.createInvoice);
-router.get('/:invoiceId', authenticate, invoicesController.getInvoice);
-router.post('/:invoiceId/payments', authenticate, invoicesController.makePayment);
-// PDF Download Route
-router.get('/:invoiceId/pdf', authenticate, invoicesController.downloadInvoicePDF);
+router.post('/create', authenticate, authorize('owner', 'administrator'), createInvoiceValidation, validate, invoicesController.createInvoice);
+router.get('/:invoiceId', authenticate, authorize('customer', 'owner', 'administrator'), invoicesController.getInvoice);
+router.post('/:invoiceId/payments', authenticate, authorize('owner', 'administrator'), paymentValidation, validate, invoicesController.makePayment);
+router.get('/:invoiceId/pdf', authenticate, authorize('customer', 'owner', 'administrator'), invoicesController.downloadInvoicePDF);
+
 module.exports = router;
